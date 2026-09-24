@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 const chatDay = (value) => value ? new Date(value).toDateString() : "";
 const chatTime = (value) => value
@@ -51,7 +52,7 @@ export function ChatRoom({ messages, members = [], tripTitle, unavailable, busy,
               {newDay && <div className="wm-chat-day"><span>{chatDate(message.created_at)}</span></div>}
               <article className={`wm-chat-row${mine ? " is-mine" : ""}${agent ? " is-agent" : ""}`}>
                 {!mine && <span className="wm-chat-avatar" aria-hidden="true">{agent ? "↗" : name[0].toUpperCase()}</span>}
-                <div className="wm-chat-message"><div className="wm-chat-message-meta"><strong>{mine ? "You" : name}</strong><time dateTime={message.created_at || undefined}>{chatTime(message.created_at)}</time></div><p>{message.body}</p>{message.change_set_id && <button className="wm-chat-proposal-link" type="button" onClick={onReviewProposal}>Review proposal <span aria-hidden="true">↗</span></button>}</div>
+                <div className="wm-chat-message"><div className="wm-chat-message-meta"><strong>{mine ? "You" : name}</strong><time dateTime={message.created_at || undefined}>{chatTime(message.created_at)}</time></div><div className="wm-chat-markdown"><ReactMarkdown components={{ a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{message.body}</ReactMarkdown></div>{message.change_set_id && <button className="wm-chat-proposal-link" type="button" onClick={onReviewProposal}>Review proposal <span aria-hidden="true">↗</span></button>}</div>
               </article>
             </React.Fragment>;
           })}

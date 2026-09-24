@@ -253,6 +253,11 @@
 .wm-chat-row.is-mine .wm-chat-message-meta strong { color: #3f7059; }
 .wm-chat-message-meta time { color: #82786d; font-size: 11px; white-space: nowrap; }
 .wm-chat-message p { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; color: #352f29; font-size: 14px; line-height: 1.58; }
+.wm-chat-markdown p + p { margin-top: 9px; }
+.wm-chat-markdown ul, .wm-chat-markdown ol { margin: 7px 0 0; padding-left: 21px; color: #352f29; font-size: 14px; line-height: 1.58; }
+.wm-chat-markdown li + li { margin-top: 4px; }
+.wm-chat-markdown a { color: #a9583b; text-decoration: underline; overflow-wrap: anywhere; }
+.wm-chat-markdown strong { font-weight: 750; }
 .wm-chat-proposal-link { display: inline-flex; gap: 12px; margin-top: 12px; padding: 9px 12px; border: 1px solid #c7a78f; border-radius: 9px; background: #fffaf3; color: #8b4d36; font-size: 12px; font-weight: 800; }
 .wm-chat-proposal-link:hover { background: #f1ddcb; }
 .wm-chat-welcome { display: grid; justify-items: center; align-content: center; flex: 1; gap: 11px; padding: 35px; text-align: center; }

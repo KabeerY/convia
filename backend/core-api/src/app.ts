@@ -21,6 +21,7 @@ export async function buildApp(config: CoreConfig, domain: DomainPort) {
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Authorization", "Content-Type", "Idempotency-Key"],
     credentials: true,
+    maxAge: 600,
   });
   app.get("/health", async () => ({ status: "up", service: "core-api" }));
   app.get("/ready", async (_request, reply) => {

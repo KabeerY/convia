@@ -67,6 +67,8 @@ const queryNames = new Set([
 function translate(error: unknown): never {
   if (error instanceof DomainError) throw error;
   const message = error instanceof Error ? error.message : String(error);
+  if (/EMAXCONNSESSION|max clients reached|too many clients/i.test(message))
+    throw new DomainError("TRIP_SERVICE_BUSY", 503, "The trip service is briefly busy. Please retry.");
   if (/^[A-Z_]+$/.test(message)) {
     const forbidden = /FORBIDDEN|REQUIRED|REMOVED_MEMBER|ADMISSION_CLOSED/.test(
       message,
@@ -91,7 +93,11 @@ export function createDomain(
   }
   const pool = new pg.Pool({
     connectionString: config.CORE_DATABASE_URL,
-    max: 10,
+    // Each Vercel instance owns a pool. Ten connections per warm instance
+    // exhausts Supabase quickly when a trip room polls from several browsers.
+    max: process.env.VERCEL ? 2 : 10,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 5_000,
   });
   const auth = createClient(
     config.SUPABASE_URL,

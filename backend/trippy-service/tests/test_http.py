@@ -34,7 +34,7 @@ class TrippyHttpTests(unittest.TestCase):
                     "/run", json=payload, headers={"X-Trippy-Service-Token": "trusted-token"}
                 )
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.json(), {"answer": "36 minutes"})
+        self.assertEqual(result.json(), {"answer": "36 minutes", "change_set_id": None})
         self.assertEqual(run.call_args.kwargs["runtime_context"].trip_id, "trusted-trip")
 
 

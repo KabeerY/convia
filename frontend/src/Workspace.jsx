@@ -255,6 +255,7 @@ function TripRoom({ tripId, token, onBack }) {
   const [forks, setForks] = useState([]);
   const [calendar, setCalendar] = useState(null);
   const loadSequence = useRef(0);
+  const loadingRoom = useRef(false);
   const [messages, setMessages] = useState([]);
   const [genome, setGenome] = useState(null);
   const [unavailable, setUnavailable] = useState({});
@@ -266,73 +267,55 @@ function TripRoom({ tripId, token, onBack }) {
   const [updatedAt, setUpdatedAt] = useState(null);
 
   const load = useCallback(async (quiet = false) => {
+    if (quiet && loadingRoom.current) return;
+    loadingRoom.current = true;
     const sequence = ++loadSequence.current;
     if (!quiet) setLoading(true);
     const encoded = encodeURIComponent(tripId);
-    const results = await Promise.allSettled([
-      core(`/trips/${encoded}`, { token }),
-      core(`/trips/${encoded}/itinerary`, { token }),
-      core(`/trips/${encoded}/change-sets`, { token }),
-      core(`/trips/${encoded}/members`, { token }),
-      core(`/trips/${encoded}/history`, { token }),
-      core(`/trips/${encoded}/join-requests`, { token }),
-      core(`/trips/${encoded}/forks`, { token }),
-      core(`/trips/${encoded}/chat`, { token }),
-      core(`/trips/${encoded}/genome`, { token }),
-      core(`/trips/${encoded}/calendar`, { token }),
-    ]);
-    if (sequence !== loadSequence.current) return;
-    const [tripResult, planResult, decisionResult, memberResult, historyResult, requestResult, forkResult, chatResult, genomeResult, calendarResult] = results;
-    if (tripResult.status === "fulfilled") { setSnapshot(tripResult.value); setError(""); setUpdatedAt(new Date()); }
-    else setError(describeError(tripResult.reason));
-    if (planResult.status === "fulfilled") setItems(asList(planResult.value, "items"));
-    if (decisionResult.status === "fulfilled") setDecisions(asList(decisionResult.value, "change_sets"));
-    if (memberResult.status === "fulfilled") setMembers(asList(memberResult.value, "members"));
-    if (historyResult.status === "fulfilled") setHistory(asList(historyResult.value, "events"));
-    if (requestResult.status === "fulfilled") setRequests(asList(requestResult.value, "requests"));
-    if (forkResult.status === "fulfilled") setForks(asList(forkResult.value, "forks"));
-    if (chatResult.status === "fulfilled") setMessages(asList(chatResult.value, "messages"));
-    if (genomeResult.status === "fulfilled") setGenome(genomeResult.value);
-    if (calendarResult.status === "fulfilled") setCalendar(calendarResult.value);
-    setUnavailable({
-      calendar: calendarResult.status === "rejected" ? describeError(calendarResult.reason) : "",
-      plan: planResult.status === "rejected" ? describeError(planResult.reason) : "",
-      decisions: decisionResult.status === "rejected" ? describeError(decisionResult.reason) : "",
-      members: memberResult.status === "rejected" ? describeError(memberResult.reason) : "",
-      history: historyResult.status === "rejected" ? describeError(historyResult.reason) : "",
-      requests: requestResult.status === "rejected" ? describeError(requestResult.reason) : "",
-      chat: chatResult.status === "rejected" ? describeError(chatResult.reason) : "",
-      genome: genomeResult.status === "rejected" ? describeError(genomeResult.reason) : "",
-    });
-    setLoading(false);
-  }, [token, tripId]);
+    const wanted = tab === "chat" ? ["chat", "members"]
+      : tab === "decisions" ? ["decisions", "calendar"]
+      : tab === "people" ? ["members", "requests", "genome"]
+      : tab === "history" ? ["history"]
+      : ["plan", "calendar", "decisions", "forks"];
+    const paths = { trip: "", plan: "/itinerary", decisions: "/change-sets", members: "/members", history: "/history", requests: "/join-requests", forks: "/forks", chat: "/chat", genome: "/genome", calendar: "/calendar" };
+    const keys = quiet ? wanted : ["trip", ...new Set([...wanted, "members"])];
+    try {
+      const settled = await Promise.allSettled(keys.map((key) => core(`/trips/${encoded}${paths[key]}`, { token })));
+      if (sequence !== loadSequence.current) return;
+      const updates = {};
+      keys.forEach((key, index) => {
+        const result = settled[index];
+        if (result.status === "rejected") {
+          // A single failed background poll must not hide a usable calendar or chat.
+          if (!quiet && key === "trip") setError(describeError(result.reason));
+          else if (!quiet) updates[key] = describeError(result.reason);
+          return;
+        }
+        if (key === "trip") { setSnapshot(result.value); setError(""); }
+        if (key === "plan") setItems(asList(result.value, "items"));
+        if (key === "decisions") setDecisions(asList(result.value, "change_sets"));
+        if (key === "members") setMembers(asList(result.value, "members"));
+        if (key === "history") setHistory(asList(result.value, "events"));
+        if (key === "requests") setRequests(asList(result.value, "requests"));
+        if (key === "forks") setForks(asList(result.value, "forks"));
+        if (key === "chat") setMessages(asList(result.value, "messages"));
+        if (key === "genome") setGenome(result.value);
+        if (key === "calendar") setCalendar(result.value);
+        updates[key] = "";
+      });
+      setUnavailable((previous) => ({ ...previous, ...updates }));
+      if (settled.some((result) => result.status === "fulfilled")) setUpdatedAt(new Date());
+      setLoading(false);
+    } finally {
+      loadingRoom.current = false;
+    }
+  }, [token, tripId, tab]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    const timer = window.setInterval(() => { if (snapshot && document.visibilityState === "visible") load(true); }, 5000);
+    const timer = window.setInterval(() => { if (snapshot && document.visibilityState === "visible") load(true); }, tab === "chat" ? 3500 : 7000);
     return () => window.clearInterval(timer);
-  }, [load, snapshot]);
-  useEffect(() => {
-    const controller = new AbortController();
-    async function connect() {
-      try {
-        const response = await fetch(`/v1/trips/${encodeURIComponent(tripId)}/events`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal });
-        if (!response.ok || !response.body) return;
-        const reader = response.body.getReader(), decoder = new TextDecoder();
-        let pending = "";
-        while (!controller.signal.aborted) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          pending += decoder.decode(value, { stream: true });
-          const events = pending.split("\n\n");
-          pending = events.pop() || "";
-          if (events.some((event) => event.includes("event: change"))) load(true);
-        }
-      } catch { /* The existing five-second refresh remains the fallback. */ }
-    }
-    connect();
-    return () => controller.abort();
-  }, [tripId, token, load]);
+  }, [load, snapshot, tab]);
 
   async function mutate(path, body, after) {
     setBusy(true);
@@ -341,6 +324,23 @@ function TripRoom({ tripId, token, onBack }) {
       const result = await core(path, { token, method: "POST", body });
       await load(true);
       after?.(result);
+      return true;
+    } catch (caught) { setActionError(describeError(caught)); return false; }
+    finally { setBusy(false); }
+  }
+
+  async function sendChat(body) {
+    setBusy(true);
+    setActionError("");
+    try {
+      const sent = await core(`/trips/${encodeURIComponent(tripId)}/chat`, { token, method: "POST", body });
+      await load(true);
+      if (/(?:^|\s)@trippy\b/i.test(body.body)) {
+        // Keep the composer responsive while the model and its tools work.
+        core(`/trips/${encodeURIComponent(tripId)}/chat/agent`, {
+          token, method: "POST", body: { message_id: sent.message_id },
+        }).then(() => load(true)).catch((caught) => setActionError(describeError(caught)));
+      }
       return true;
     } catch (caught) { setActionError(describeError(caught)); return false; }
     finally { setBusy(false); }
@@ -370,7 +370,7 @@ function TripRoom({ tripId, token, onBack }) {
       <Notice tone="error">{actionError}</Notice>
       {tab === "plan" && <section className="wm-panel cc-calendar-panel"><div className="wm-panel-title"><div><span className="wm-kicker">THE SHARED PLAN</span><h2>One place for everyone.</h2></div><div className="wm-plan-switch"><button className={planView === "calendar" ? "active" : ""} onClick={() => setPlanView("calendar")}>Calendar</button><button className={planView === "list" ? "active" : ""} onClick={() => setPlanView("list")}>Day list</button></div></div>{unavailable.plan ? <Notice tone="error">{unavailable.plan}</Notice> : planView === "calendar" ? <PlanCalendar items={items} forks={forks} calendar={calendar} unavailable={unavailable.calendar} trip={trip} timezone={settings.timezone} version={version} busy={busy} members={members} canVote={canVote && !!calendar && !unavailable.calendar} decisions={decisions} actionError={actionError} onVote={voteOnDecision} onCommand={calendarCommand} /> : <PlanDays items={items} trip={trip} timezone={settings.timezone} />}</section>}
       {tab === "decisions" && <><DecisionRoom decisions={decisions} unavailable={unavailable.decisions} canVote={canVote} busy={busy} onVote={voteOnDecision} /><section className="wm-panel"><h2>Calendar changes & discussions</h2><Notice tone="error">{unavailable.calendar}</Notice><CalendarDiscussions proposals={calendar?.proposals || []} busy={busy} onCommand={calendarCommand} /></section></>}
-      {tab === "chat" && <ChatRoom messages={messages} members={members} tripTitle={trip.title} unavailable={unavailable.chat} busy={busy} onSend={(body) => mutate(`/trips/${safeId}/chat`, body)} onReviewProposal={() => setTab("decisions")} />}
+      {tab === "chat" && <ChatRoom messages={messages} members={members} tripTitle={trip.title} unavailable={unavailable.chat} busy={busy} onSend={sendChat} onReviewProposal={() => setTab("decisions")} />}
       {tab === "people" && <div className="wm-room-grid"><section className="wm-panel"><div className="wm-panel-title"><div><span className="wm-kicker">THE PEOPLE IN THIS PLAN</span><h2>Your travel crew.</h2></div></div>{unavailable.members ? <Notice tone="error">{unavailable.members}</Notice> : members.length === 0 ? <div className="wm-empty wm-empty-small">Member list is coming in…</div> : <div className="wm-member-list">{members.map((member) => <div className="wm-member" key={member.user_id}><span className="wm-avatar">{(member.display_name || "T")[0].toUpperCase()}</span><div><strong>{member.display_name}</strong><small>{member.role?.replace("_", " ")}</small></div></div>)}</div>}</section><aside className="wm-panel"><span className="wm-kicker">BRING SOMEONE ALONG</span><h3>There’s room for more stories.</h3>{isOrganizer(role) ? <><p>Create a private invite. The code is shown once so you can share it with someone you trust.</p><button className="wm-secondary" disabled={busy} onClick={() => mutate(`/trips/${safeId}/invites`, { target_role: "participant", max_uses: 5, expires_at: new Date(Date.now() + 7 * 86400000).toISOString() }, setInvite)}>{busy ? "Creating…" : "+ Create invite"}</button>{invite?.code && <div className="wm-invite-result"><span>Invite code</span><code>{invite.code}</code><button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/app?invite_trip=${encodeURIComponent(tripId)}&code=${encodeURIComponent(invite.code)}`)}>Copy invite link</button></div>}</> : <p>Ask your organizer for an invitation link if you want someone else to join.</p>}{isOrganizer(role) && <div className="wm-request-list"><h4>Join requests</h4>{unavailable.requests ? <small>{unavailable.requests}</small> : requests.length === 0 ? <small>No requests waiting.</small> : requests.map((request) => <div className="wm-request" key={request.request_id}><strong>{request.display_name}</strong><p>{request.introduction}</p><button disabled={busy} onClick={() => mutate(`/join-requests/${encodeURIComponent(request.request_id)}/review`, { trip_id: tripId, decision: "accepted" })}>Accept</button><button disabled={busy} onClick={() => mutate(`/join-requests/${encodeURIComponent(request.request_id)}/review`, { trip_id: tripId, decision: "declined" })}>Decline</button></div>)}</div>}</aside></div>}
       {tab === "history" && <section className="wm-panel"><div className="wm-panel-title"><div><span className="wm-kicker">WHY THE PLAN CHANGED</span><h2>A story you can trace.</h2></div></div>{unavailable.history ? <Notice tone="error">{unavailable.history}</Notice> : history.length === 0 ? <div className="wm-empty wm-empty-small"><h3>Nothing has changed yet.</h3><p>Approved proposals and earlier versions will appear here.</p></div> : <div className="wm-history-list">{history.map((event, index) => { const [title, description] = historyCopy(event); return <article key={event.history_id || event.event_id || index}><span className="wm-history-dot"/><div><strong>{title}</strong><p>{description}</p><small>{event.occurred_at ? readableDate(event.occurred_at) : ""}</small></div></article>; })}</div>}</section>}
     </>}

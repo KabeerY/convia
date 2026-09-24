@@ -1,6 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { DomainError } from "../../domain.js";
+import { verifyServiceCredential } from "../../auth/service-credentials.js";
+import { readConfig } from "../../config.js";
 import type { CoreModule, DomainPort } from "../../module-contract.js";
 import {
   type GenomeInput,
@@ -9,11 +11,10 @@ import {
   type Profile,
 } from "./match.js";
 import {
-  askTrippy,
   askTrippyService,
   type TrippySuggestion,
-  trippyConfigured,
   trippyServiceConfigured,
+  trippySuggestionSchema,
 } from "./trippy.js";
 
 const id = z.string().min(1).max(128);
@@ -191,6 +192,30 @@ async function proposalFromTrippy(
 export const v0Module: CoreModule = {
   name: "v0-trip-features",
   register(app: FastifyInstance, domain: DomainPort) {
+    app.post("/v1/internal/trippy/tool", async (request) => {
+      verifyServiceCredential(readConfig(), "trippy", request.headers["x-trippy-service-token"] as string | undefined);
+      const input = parse(z.object({
+        trip_id: id,
+        user_id: id,
+        action: z.enum(["read_plan", "propose_change"]),
+        draft: trippySuggestionSchema.optional(),
+      }).strict(), request.body);
+      // The model sees only tool arguments. This actor/trip binding comes from
+      // the authenticated Core -> Trippy invocation and is checked by SQL again.
+      const context = { actor: { userId: input.user_id, authSubject: "trippy-service" }, requestId: request.id };
+      const [snapshot, itinerary] = await Promise.all([
+        domain.query<{ trip: Record<string, unknown>; settings?: { timezone?: string } }>("trip.read", context, input.trip_id),
+        domain.query<Itinerary>("itinerary.read", context, input.trip_id),
+      ]);
+      if (input.action === "read_plan") return {
+        trip: snapshot.trip,
+        timezone: snapshot.settings?.timezone,
+        itinerary: { version: itinerary.version, items: (itinerary.items || []).slice(0, 60) },
+      };
+      if (!input.draft || input.draft.action === "none") throw new DomainError("TRIPPY_DRAFT_REQUIRED", 400);
+      const decision = await proposalFromTrippy(domain, context, input.trip_id, itinerary, input.draft);
+      return { change_set_id: decision?.change_set_id, status: "proposed_for_group_vote" };
+    });
     app.get("/v1/me/passport", async (request) =>
       domain.query("v0.passport.read", await domain.resolveContext(request)),
     );
@@ -300,72 +325,47 @@ export const v0Module: CoreModule = {
         Record<string, unknown>,
         { message_id: string; duplicate?: boolean }
       >("v0.chat.send", { trip_id, ...input, kind: "member" }, context);
-      if (!saved.duplicate && /(?:^|\s)@trippy\b/i.test(input.body)) {
+      return reply.code(201).send(saved);
+    });
+    // A model call can take many seconds; never make an ordinary chat send wait
+    // for it. The sender starts this request after the message is visible.
+    app.post("/v1/trips/:trip_id/chat/agent", async (request, reply) => {
+      const { trip_id } = parse(tripParams, request.params);
+      const { message_id } = parse(z.object({ message_id: id }).strict(), request.body);
+      const context = await domain.resolveContext(request);
+      const recent = await domain.query<Array<{
+        message_id: string;
+        display_name?: string;
+        content_kind: string;
+        body: string;
+        is_mine?: boolean;
+      }>>("v0.chat.list", context, trip_id);
+      const source = recent.find((message) => message.message_id === message_id);
+      if (!source || !source.is_mine || source.content_kind !== "member" || !/(?:^|\s)@trippy\b/i.test(source.body))
+        throw new DomainError("TRIPPY_MESSAGE_REQUIRED", 403);
+      {
         let answer =
           "Trippy is not configured yet. Please try again shortly.";
         let change_set_id: string | undefined;
         if (trippyServiceConfigured()) {
           try {
-            const recent = await domain.query<Array<{
-              message_id: string;
-              display_name?: string;
-              content_kind: string;
-              body: string;
-            }>>("v0.chat.list", context, trip_id);
             const history = recent
-              .filter((message) => message.message_id !== saved.message_id)
+              .filter((message) => message.message_id !== message_id)
               .slice(-15)
               .map((message) => ({
                 role: message.content_kind === "agent" ? "assistant" as const : "user" as const,
                 content: message.body,
                 ...(message.content_kind === "agent" ? {} : { sender_name: message.display_name }),
               }));
-            const query = input.body.replace(/@trippy\b/gi, "").trim();
-            answer = query
-              ? await askTrippyService(query, history, trip_id, context.actor.userId)
-              : "Ask me a question after @trippy and I'll help.";
+            const query = source.body.replace(/@trippy\b/gi, "").trim();
+            if (query) {
+              const result = await askTrippyService(query, history, trip_id, context.actor.userId);
+              answer = result.answer;
+              change_set_id = result.change_set_id || undefined;
+            } else answer = "Ask me a question after @trippy and I'll help.";
           } catch (error) {
             request.log.warn(error, "Trippy service failed");
             answer = "I couldn't answer that just now. Please try again in a moment.";
-          }
-        } else if (trippyConfigured()) {
-          try {
-            const [snapshot, itinerary] = await Promise.all([
-              domain.query<{
-                trip: Record<string, unknown>;
-                settings?: { timezone?: string };
-              }>("trip.read", context, trip_id),
-              domain.query<Itinerary>("itinerary.read", context, trip_id),
-            ]);
-            const suggestion = await askTrippy(input.body, {
-              trip: snapshot.trip,
-              timezone: snapshot.settings?.timezone,
-              itinerary: {
-                version: itinerary.version,
-                items: (itinerary.items || []).slice(0, 30).map((item) => ({
-                  item_id: item.item_id,
-                  title: item.title,
-                  day_index: item.day_index,
-                  starts_at: item.starts_at,
-                  ends_at: item.ends_at,
-                })),
-              },
-            });
-            const decision = await proposalFromTrippy(
-              domain,
-              context,
-              trip_id,
-              itinerary,
-              suggestion,
-            );
-            change_set_id = decision?.change_set_id;
-            answer = decision
-              ? `${suggestion.message} I prepared a proposal in the Decision Room. The itinerary changes only after your group approves it.`
-              : suggestion.message;
-          } catch (error) {
-            request.log.warn(error, "Trippy suggestion failed");
-            answer =
-              "I couldn't prepare a safe proposal from that request. Try a clearer activity and time, or propose it on the calendar.";
           }
         }
         await domain.execute(
@@ -374,13 +374,13 @@ export const v0Module: CoreModule = {
             trip_id,
             body: answer,
             kind: "agent",
-            client_message_id: `agent_${saved.message_id}`,
+            client_message_id: `agent_${message_id}`,
             change_set_id,
           },
           context,
         );
       }
-      return reply.code(201).send(saved);
+      return reply.code(201).send({ message_id, answered: true });
     });
     app.get("/v1/trips/:trip_id/events", async (request, reply) => {
       const { trip_id } = parse(tripParams, request.params);

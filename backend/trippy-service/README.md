@@ -1,9 +1,8 @@
 # Trippy agent (first version)
 
-This package contains the Python/LangChain agent and a small service-to-service
-`POST /run` endpoint. The existing chat application is not wired to it yet;
-Core must detect `@trippy`, remove the mention, fetch recent messages, authorize
-the trip/user, and pass that scope with `X-Trippy-Service-Token`.
+This package contains the Python/LangChain agent and a service-to-service
+`POST /run` endpoint. Core detects `@trippy`, supplies the latest 15 messages
+and authenticated trip/user scope, then stores the answer in group chat.
 
 From this directory, install and test with Python 3.12+ and `uv`:
 
@@ -25,7 +24,7 @@ key. A missing key raises a clear configuration error.
 
 `/health` checks the process and `/ready` checks agent credentials. `/run`
 requires the service token; it accepts `query`, `context`, `trip_id`, and
-`user_id`, and returns `{ "answer": "..." }`. Keep the token server-side. The
+`user_id`, and returns `{ "answer": "...", "change_set_id": null }`. Keep the token server-side. The
 endpoint is not a public user API and does not itself verify trip membership.
 
 ```python
@@ -54,9 +53,11 @@ messages and appends the current query. The system prompt comes only from the
 application, never from chat. `AgentRuntimeContext` is supplied separately by
 the authenticated backend, not by the model. Tools can read it through
 LangChain's `ToolRuntime`; those fields are omitted from model-visible tool
-schemas. Real itinerary tools must additionally enforce authorization and the
-app's proposal/vote rules before any write. This first version includes no
-itinerary-write tools.
+schemas. The trip tools bind that scope outside model arguments, call Core with
+`TRIPPY_CORE_API_URL` and a service credential, and Core checks trip membership.
+`read_trip_plan` reads the current plan; `propose_activity`, `propose_move`, and
+`propose_fork` publish proposals for a group vote, never direct commits.
+`web_search` uses OpenRouter's server web-search tool and returns source URLs.
 
 Provider setup lives in `providers.py`. To switch later, install the optional
 Fireworks dependency (`uv sync --extra fireworks`), set `FIREWORKS_API_KEY`, and

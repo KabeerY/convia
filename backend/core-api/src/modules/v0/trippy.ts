@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const suggestion = z.object({
+export const trippySuggestionSchema = z.object({
   message: z.string().max(500),
   action: z.enum(["none", "add", "move", "fork"]),
   title: z.string().max(200).optional(),
@@ -23,13 +23,15 @@ const suggestion = z.object({
   rejoin_at: z.iso.datetime({ offset: true }).optional(),
   rejoin_note: z.string().max(160).optional(),
 });
-export type TrippySuggestion = z.infer<typeof suggestion>;
+export type TrippySuggestion = z.infer<typeof trippySuggestionSchema>;
 
 export type TrippyChatMessage = {
   role: "user" | "assistant";
   content: string;
   sender_name?: string;
 };
+
+export type TrippyServiceAnswer = { answer: string; change_set_id?: string | null };
 
 export function trippyServiceConfigured() {
   const url = process.env.TRIPPY_SERVICE_URL || "";
@@ -42,7 +44,7 @@ export async function askTrippyService(
   context: TrippyChatMessage[],
   tripId: string,
   userId: string,
-): Promise<string> {
+): Promise<TrippyServiceAnswer> {
   if (!trippyServiceConfigured()) throw new Error("TRIPPY_NOT_CONFIGURED");
   const response = await fetch(`${process.env.TRIPPY_SERVICE_URL?.replace(/\/$/, "")}/run`, {
     method: "POST",
@@ -51,11 +53,11 @@ export async function askTrippyService(
       "X-Trippy-Service-Token": process.env.TRIPPY_SERVICE_TOKEN!,
     },
     body: JSON.stringify({ query, context: context.slice(-15), trip_id: tripId, user_id: userId }),
-    signal: AbortSignal.timeout(25000),
+    signal: AbortSignal.timeout(60000),
   });
   if (!response.ok) throw new Error(`TRIPPY_SERVICE_${response.status}`);
-  const payload = z.object({ answer: z.string().trim().min(1) }).parse(await response.json());
-  return payload.answer.slice(0, 1000);
+  const payload = z.object({ answer: z.string().trim().min(1), change_set_id: z.string().nullable().optional() }).parse(await response.json());
+  return { answer: payload.answer.slice(0, 1000), ...(payload.change_set_id ? { change_set_id: payload.change_set_id } : {}) };
 }
 
 export function trippyConfigured() {
@@ -109,5 +111,5 @@ export async function askTrippy(
     ?.map((part) => part.text || "")
     .join("");
   if (!raw) throw new Error("TRIPPY_EMPTY_RESPONSE");
-  return suggestion.parse(JSON.parse(raw));
+  return trippySuggestionSchema.parse(JSON.parse(raw));
 }

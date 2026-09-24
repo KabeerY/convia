@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from .agent import AgentRunRequest, AgentRuntimeContext, TrippyAgent
 from .example_tools import current_trip_scope, estimate_travel_minutes
+from .trip_tools import build_trip_tools
 
 app = FastAPI(title="Convia Trippy", version="0.1.0")
 
@@ -22,6 +23,7 @@ class AgentInvocation(AgentRunRequest):
 
 class AgentAnswer(BaseModel):
     answer: str
+    change_set_id: str | None = None
 
 
 def configured(name: str) -> bool:
@@ -58,22 +60,29 @@ async def run_agent(
 
     provider = os.getenv("TRIPPY_PROVIDER", "openrouter")
     model = os.getenv("TRIPPY_MODEL", "stealth/space-bunny-alpha")
+    scope = AgentRuntimeContext(trip_id=request.trip_id, user_id=request.user_id)
+    proposal_ids: list[str] = []
     agent = TrippyAgent(
         provider=provider,
         model=model,
         base_prompt=(
-            "You are Trippy, a concise group-travel assistant. Use a tool when it helps. "
-            "Do not invent current place hours, prices, or facts when no search tool is available. "
-            "Never claim an itinerary change was saved unless a tool confirms it."
+            "You are Trippy, a concise assistant inside one group trip. Stay on travel and this trip; "
+            "politely decline unrelated coding or general homework requests. "
+            "Use read_trip_plan before calendar proposals, and web_search for current place hours or prices. "
+            "Never invent a place, date, opening time, or source URL. Use actual trip dates and timezone. "
+            "When asked to add or change a plan, call the proposal tool if details are sufficient; "
+            "the tool only creates a group vote and cannot commit a change. "
+            "Never claim the approved itinerary changed unless a tool explicitly confirms that. "
+            "If a tool fails, say what is missing and ask one short clarifying question."
         ),
-        tools=[estimate_travel_minutes, current_trip_scope],
+        tools=[*build_trip_tools(scope, model, proposal_ids), estimate_travel_minutes, current_trip_scope],
     )
     try:
         answer = await run_in_threadpool(
             agent.run,
             AgentRunRequest(query=request.query, context=request.context),
-            runtime_context=AgentRuntimeContext(trip_id=request.trip_id, user_id=request.user_id),
+            runtime_context=scope,
         )
     except ValueError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
-    return AgentAnswer(answer=answer)
+    return AgentAnswer(answer=answer, change_set_id=proposal_ids[-1] if proposal_ids else None)

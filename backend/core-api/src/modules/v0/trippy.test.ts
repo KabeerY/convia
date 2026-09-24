@@ -34,7 +34,7 @@ test("Trippy service receives only the latest chat context and trusted scope", a
       role: "user" as const,
       content: `message ${index}`,
     }));
-    assert.equal(await askTrippyService("How long?", context, "trusted-trip", "trusted-user"), "36 minutes.");
+    assert.deepEqual(await askTrippyService("How long?", context, "trusted-trip", "trusted-user"), { answer: "36 minutes." });
     assert.equal(payload?.trip_id, "trusted-trip");
     assert.equal(payload?.user_id, "trusted-user");
     assert.equal((payload?.context as Array<{ content: string }>).length, 15);

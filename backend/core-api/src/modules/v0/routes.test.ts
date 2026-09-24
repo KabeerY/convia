@@ -96,7 +96,9 @@ test("calendar move publishes an intent; unconfigured Trippy does not fake a mod
           : { change_set_id: "chg_test" }
       ) as never;
     },
-    query: async () => ({}) as never,
+    query: async (name) => (name === "v0.chat.list"
+      ? [{ message_id: "msg_2", body: "@Trippy plan something", content_kind: "member", is_mine: true }]
+      : {}) as never,
   };
   const app = await buildApp(readConfig({}), domain);
   try {
@@ -120,6 +122,13 @@ test("calendar move publishes an intent; unconfigured Trippy does not fake a mod
       payload: { body: "@Trippy plan something" },
     });
     assert.equal(chat.statusCode, 201);
+    assert.equal(commands.filter((entry) => entry.name === "v0.chat.send").length, 1);
+    const answer = await app.inject({
+      method: "POST",
+      url: "/v1/trips/trp_test/chat/agent",
+      payload: { message_id: "msg_2" },
+    });
+    assert.equal(answer.statusCode, 201);
     assert.equal(
       commands.filter((entry) => entry.name === "v0.chat.send").length,
       2,
