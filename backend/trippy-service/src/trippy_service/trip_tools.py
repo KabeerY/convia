@@ -20,7 +20,8 @@ def _core_tool(scope: AgentRuntimeContext, action: str, draft: dict | None = Non
         response = httpx.post(
             f"{base}/v1/internal/trippy/tool",
             headers={"X-Trippy-Service-Token": token},
-            json={"trip_id": scope.trip_id, "user_id": scope.user_id, "action": action, "draft": draft},
+            json={"trip_id": scope.trip_id, "user_id": scope.user_id, "action": action,
+                  **({"draft": draft} if draft is not None else {})},
             timeout=15,
         )
         payload = response.json()

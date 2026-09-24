@@ -19,6 +19,7 @@ class TripToolTests(unittest.TestCase):
                 self.assertIn("Manali", read.invoke({}))
         self.assertEqual(post.call_args.kwargs["json"]["trip_id"], "trusted-trip")
         self.assertEqual(post.call_args.kwargs["json"]["user_id"], "trusted-user")
+        self.assertNotIn("draft", post.call_args.kwargs["json"])
         self.assertNotIn("trip_id", read.args)
 
     def test_proposal_id_is_recorded_only_after_core_accepts(self):
