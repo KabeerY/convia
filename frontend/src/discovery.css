@@ -30,6 +30,13 @@
 .wm-match-reasons { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 25px; }
 .wm-match-reasons span { padding: 7px 9px; border-radius: 999px; background: #eae7d9; color: #596a5d; font-size: 11px; }
 .wm-card-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: auto; }
+.wm-preview-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: #1d2925b8; }
+.wm-preview-dialog { position: relative; width: min(570px, 100%); max-height: calc(100vh - 40px); overflow: auto; }
+.wm-preview-dialog > .wm-icon-button { position: absolute; top: 18px; right: 18px; }
+.wm-preview-dialog h2 { max-width: 460px; margin: 24px 0 12px; font-size: 48px; }
+.wm-preview-dialog > p { max-width: 460px; margin-bottom: 25px; color: #74695f; line-height: 1.6; }
+.wm-preview-items { display: grid; gap: 10px; margin: 25px 0; padding: 20px 0; border-block: 1px solid #e3d4c5; font-size: 13px; }
+.wm-preview-items strong { margin-bottom: 4px; color: #a25840; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
 .wm-app-header nav button[aria-current="page"] { color: #aa553e; text-decoration: underline; text-underline-offset: 8px; }
 @media (max-width: 900px) {
   .wm-choice-grid { grid-template-columns: 1fr; }

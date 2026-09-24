@@ -27,6 +27,8 @@
 .wm-notice { padding: 13px 16px; border: 1px solid #dacbb9; border-radius: 14px; background: #fffaf2; color: #534d45; font-size: 13px; line-height: 1.55; }
 .wm-notice-error { border-color: #dba999; background: #fff0e9; color: #8a352a; }
 .wm-notice-success { border-color: #b7cfc0; background: #eef7ef; color: #245e4d; }
+.wm-retry-notice { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.wm-retry-notice .wm-notice { flex: 1; min-width: 220px; }
 .wm-form { display: grid; gap: 18px; }
 .wm-form label { display: grid; gap: 8px; font-size: 12px; font-weight: 750; letter-spacing: .03em; }
 .wm-form input,
@@ -115,6 +117,7 @@
 .wm-decision { display: flex; justify-content: space-between; align-items: center; gap: 25px; padding: 23px; border: 1px solid #e2d5c7; border-radius: 14px; background: #fffdf9; }
 .wm-decision h3 { margin: 8px 0 7px; font-family: "Instrument Serif", Georgia, serif; font-size: 29px; font-weight: 400; }
 .wm-decision p { color: #74695f; font-size: 13px; }
+.wm-decision-note { display: block; max-width: 450px; margin-top: 12px; color: #9a563f; line-height: 1.45; }
 .wm-decision-actions { display: flex; gap: 9px; flex-shrink: 0; }
 .wm-member-list { display: grid; }
 .wm-member { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-top: 1px solid #e1d5c7; }

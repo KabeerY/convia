@@ -23,7 +23,9 @@ export async function core(path, { token, method = "GET", body, signal } = {}) {
       payload?.error?.message ||
         (response.status === 503
           ? "This part of the trip service is not available yet."
-          : `Request failed (${response.status}).`),
+          : response.status === 502 || response.status === 504
+            ? "The trip service is offline. Please try again shortly."
+            : `Request failed (${response.status}).`),
     );
     error.status = response.status;
     error.code = payload?.error?.code;
