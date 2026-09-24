@@ -10,7 +10,7 @@
     "db:conformance": "node --env-file-if-exists=../../.env --import tsx src/db/conformance.ts",
     "test:real-auth": "node --env-file-if-exists=../../.env --import tsx src/auth/real-users.smoke.ts",
     "test": "node --import tsx --test src/*.test.ts src/**/*.test.ts",
-    "test:integration": "node --env-file-if-exists=../../.env --import tsx --test src/db/domain.integration.test.ts",
+    "test:integration": "node --env-file-if-exists=../../.env --import tsx --test src/db/*.integration.test.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc"
   },

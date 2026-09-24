@@ -63,6 +63,24 @@ class PublishChangeSetRequest(TypedDict):
     operations: list[ChangeOperation]
     requested_closes_at: NotRequired[Instant]
 
+class V0ActivityItem(TypedDict):
+    title: str
+    item_type: Literal["hotel", "flight", "poi", "package", "guide", "transfer", "meal", "free"]
+    day_index: int
+    starts_at: Instant
+    ends_at: Instant
+
+class V0AddOperation(TypedDict):
+    action: Literal["add"]
+    new_item: V0ActivityItem
+    cost_basis: NotRequired[Literal["unknown"]]
+
+class PublishV0ChangeSetRequest(TypedDict):
+    base_itinerary_version: int
+    title: str
+    operations: list[V0AddOperation]
+    requested_closes_at: NotRequired[Instant]
+
 class BallotRequest(TypedDict):
     vote: Literal["yes", "no"]
     expected_revision: int
@@ -71,14 +89,22 @@ ChangeSetState: TypeAlias = Literal["open", "committed", "rejected", "expired", 
 
 class DecisionSummary(TypedDict):
     change_set_id: Id
+    trip_id: Id
+    title: str
     state: ChangeSetState
+    status: ChangeSetState
+    revision: int
     base_itinerary_version: int
     eligible_count: int
     threshold: int
+    approval_threshold: int
     yes_count: int
     no_count: int
+    actor_ballot: Literal["yes", "no", null]
     closes_at: Instant
-    committed_itinerary_version: NotRequired[int]
+    created_at: NotRequired[Instant]
+    operations: list[ChangeOperation]
+    committed_itinerary_version: int | None
 
 class EventEnvelope(TypedDict):
     schema_version: Literal[1]

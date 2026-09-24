@@ -14,6 +14,10 @@ const migrations = [
     name: "0003_commands",
     path: resolve(dataRoot, "migrations/0003_commands.sql"),
   },
+  {
+    name: "0004_v0_decisions",
+    path: resolve(dataRoot, "migrations/0004_v0_decisions.sql"),
+  },
 ];
 
 async function main() {

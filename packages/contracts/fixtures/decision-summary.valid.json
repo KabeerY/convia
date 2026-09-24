@@ -1,0 +1,33 @@
+{
+  "schema": "DecisionSummary",
+  "valid": true,
+  "payload": {
+    "change_set_id": "chg_example",
+    "trip_id": "trp_example",
+    "title": "Add a morning walk",
+    "state": "open",
+    "status": "open",
+    "revision": 1,
+    "base_itinerary_version": 1,
+    "eligible_count": 2,
+    "threshold": 2,
+    "approval_threshold": 2,
+    "yes_count": 1,
+    "no_count": 0,
+    "actor_ballot": "yes",
+    "closes_at": "2026-09-25T10:00:00Z",
+    "created_at": "2026-09-24T10:00:00Z",
+    "operations": [{
+      "action": "add",
+      "new_item": {
+        "title": "Morning walk",
+        "item_type": "poi",
+        "day_index": 1,
+        "starts_at": "2026-11-01T10:00:00Z",
+        "ends_at": "2026-11-01T11:00:00Z"
+      },
+      "cost_basis": "unknown"
+    }],
+    "committed_itinerary_version": null
+  }
+}

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { CoreModule, DomainPort } from "../module-contract.js";
 import { conversationsModule } from "./conversations/index.js";
+import { decisionsModule } from "./decisions/index.js";
 import { discoveryModule } from "./discovery/http/index.js";
 import { guidesModule } from "./guides/index.js";
 import { mediaCatalogueModule } from "./media-catalogue/http/index.js";
@@ -9,6 +10,7 @@ import { tripsModule } from "./trips/http/index.js";
 
 export const modules: CoreModule[] = [
   tripsModule,
+  decisionsModule,
   conversationsModule,
   notificationsModule,
   discoveryModule,
