@@ -30,6 +30,22 @@ const migrations = [
     name: "0007_live_trip_features",
     path: resolve(dataRoot, "migrations/0007_live_trip_features.sql"),
   },
+  {
+    name: "0008_calendar_branches",
+    path: resolve(dataRoot, "migrations/0008_calendar_branches.sql"),
+  },
+  {
+    name: "0009_calendar_integrity",
+    path: resolve(dataRoot, "migrations/0009_calendar_integrity.sql"),
+  },
+  {
+    name: "0010_calendar_snapshot",
+    path: resolve(dataRoot, "migrations/0010_calendar_snapshot.sql"),
+  },
+  {
+    name: "0011_calendar_cancellation",
+    path: resolve(dataRoot, "migrations/0011_calendar_cancellation.sql"),
+  },
 ];
 
 async function main() {

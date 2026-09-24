@@ -11,71 +11,247 @@ const smoothstep = (value) => {
   return t * t * (3 - 2 * t);
 };
 
-function DoorCarving({ side }) {
-  const patternId = `carving-${side}`;
+function DoorPanels({ side }) {
+  const key = `palace-${side}`;
+  const lotus = (x, y, size = 1) => (
+    <g transform={`translate(${x} ${y}) scale(${size})`}>
+      {Array.from({ length: 12 }, (_, i) => (
+        <path
+          key={i}
+          transform={`rotate(${i * 30})`}
+          d="M0 0C-19-13-22-37 0-57 22-37 19-13 0 0Z"
+          fill={`url(#${key}-gold)`}
+          stroke="#402d1c"
+          strokeWidth="2"
+        />
+      ))}
+      <circle
+        r="17"
+        fill={`url(#${key}-gold)`}
+        stroke="#3b2819"
+        strokeWidth="3"
+      />
+      <circle r="9" fill="#345d55" stroke="#d0a963" strokeWidth="2" />
+    </g>
+  );
+  const arch =
+    "M54 565V225Q54 200 78 191Q57 153 98 139Q85 105 129 103Q139 73 170 82L200 48 230 82Q261 73 271 103Q315 105 302 139Q343 153 322 191Q346 200 346 225V565Z";
   return (
     <svg
-      className="door-carving"
+      className="door-panels"
       viewBox="0 0 400 720"
       preserveAspectRatio="none"
       aria-hidden="true"
     >
       <defs>
+        <linearGradient id={`${key}-wood`} x1="0" y1="0" x2="1" y2=".3">
+          <stop stopColor="#261d19" />
+          <stop offset=".22" stopColor="#71432c" />
+          <stop offset=".5" stopColor="#482d22" />
+          <stop offset=".78" stopColor="#67412b" />
+          <stop offset="1" stopColor="#241b16" />
+        </linearGradient>
+        <linearGradient id={`${key}-gold`} x1="0" y1="0" x2=".85" y2="1">
+          <stop stopColor="#e4c28a" />
+          <stop offset=".18" stopColor="#b78a49" />
+          <stop offset=".48" stopColor="#77512b" />
+          <stop offset=".65" stopColor="#cda769" />
+          <stop offset="1" stopColor="#624322" />
+        </linearGradient>
+        <radialGradient id={`${key}-inlay`}>
+          <stop stopColor="#517569" />
+          <stop offset=".7" stopColor="#29483e" />
+          <stop offset="1" stopColor="#142c26" />
+        </radialGradient>
+        <filter
+          id={`${key}-relief`}
+          x="-20%"
+          y="-20%"
+          width="140%"
+          height="140%"
+        >
+          <feDropShadow
+            dx="0"
+            dy="3"
+            stdDeviation="2"
+            floodColor="#0c0906"
+            floodOpacity=".9"
+          />
+          <feDropShadow
+            dx="-1"
+            dy="-1"
+            stdDeviation=".35"
+            floodColor="#e6c48b"
+            floodOpacity=".45"
+          />
+        </filter>
+        <filter id={`${key}-grain`}>
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency=".16 .025"
+            numOctaves="3"
+            seed={side === "left" ? 6 : 12}
+          />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
         <pattern
-          id={patternId}
-          width="40"
-          height="40"
+          id={`${key}-jali`}
+          width="36"
+          height="36"
           patternUnits="userSpaceOnUse"
         >
           <path
-            d="M20 2 38 20 20 38 2 20Z M20 11 29 20 20 29 11 20Z"
+            d="M18 0 36 18 18 36 0 18ZM18 7 29 18 18 29 7 18Z"
             fill="none"
-            stroke="currentColor"
-            strokeWidth=".7"
+            stroke="#aa8046"
+            strokeWidth="1.2"
           />
-          <circle cx="20" cy="20" r="2" fill="currentColor" />
+          <circle cx="18" cy="18" r="2.5" fill="#c3a16a" />
         </pattern>
+        <clipPath id={`${key}-arch`}>
+          <path d={arch} />
+        </clipPath>
       </defs>
-      <path
-        className="carved-line"
-        d="M32 681V210C32 105 120 83 200 32c80 51 168 73 168 178v471Z"
+      <rect width="400" height="720" fill={`url(#${key}-wood)`} />
+      <rect
+        x="9"
+        y="9"
+        width="382"
+        height="702"
+        fill="none"
+        stroke="#171a13"
+        strokeWidth="12"
       />
-      <path
-        className="carved-line"
-        d="M49 663V216c0-92 79-115 151-163 72 48 151 71 151 163v447Z"
+      <rect
+        x="15"
+        y="15"
+        width="370"
+        height="690"
+        fill="none"
+        stroke={`url(#${key}-gold)`}
+        strokeWidth="5"
       />
-      <path
-        d="M65 646V219c0-79 71-102 135-146 64 44 135 67 135 146v427Z"
-        fill={`url(#${patternId})`}
-        opacity=".42"
+      <rect
+        x="28"
+        y="28"
+        width="344"
+        height="664"
+        fill="none"
+        stroke="#ad814a"
+        strokeWidth="1.5"
       />
-      <path
-        className="carved-line"
-        d="M65 520h270M65 537h270M82 562h236v62H82Z"
-      />
-      <g transform="translate(200 300)">
-        <circle r="72" className="carved-line" />
-        <circle r="63" className="carved-line" />
-        {Array.from({ length: 12 }, (_, i) => (
-          <ellipse
+      <g filter={`url(#${key}-relief)`}>
+        <path
+          d={arch}
+          fill={`url(#${key}-inlay)`}
+          stroke={`url(#${key}-gold)`}
+          strokeWidth="14"
+        />
+        <path d={arch} fill="none" stroke="#e0b978" strokeWidth="1.4" />
+        <g clipPath={`url(#${key}-arch)`}>
+          <rect
+            x="50"
+            y="45"
+            width="300"
+            height="530"
+            fill={`url(#${key}-jali)`}
+            opacity=".42"
+          />
+          <path
+            d="M72 541C125 516 105 466 158 449M328 541C275 516 295 466 242 449M78 241C132 224 118 164 166 145M322 241C268 224 282 164 234 145"
+            fill="none"
+            stroke={`url(#${key}-gold)`}
+            strokeWidth="5"
+          />
+          {[0, 1].map((i) => (
+            <g
+              key={i}
+              transform={i ? "translate(400 0) scale(-1 1)" : undefined}
+            >
+              {[0, 1, 2].map((j) => (
+                <g
+                  key={j}
+                  transform={`translate(${92 + j * 17} ${507 - j * 22}) rotate(-30)`}
+                >
+                  <path
+                    d="M0 0C-26-5-31-27-27-35-6-32 5-18 0 0ZM0 0C25-8 31-27 26-34 5-29-6-15 0 0Z"
+                    fill={`url(#${key}-gold)`}
+                  />
+                </g>
+              ))}
+            </g>
+          ))}
+        </g>
+        <circle
+          cx="200"
+          cy="302"
+          r="110"
+          fill="#34271c"
+          stroke={`url(#${key}-gold)`}
+          strokeWidth="9"
+        />
+        <circle
+          cx="200"
+          cy="302"
+          r="97"
+          fill={`url(#${key}-inlay)`}
+          stroke="#c5a56e"
+          strokeWidth="2"
+        />
+        {Array.from({ length: 32 }, (_, i) => (
+          <circle
             key={i}
-            cx="0"
-            cy="-25"
-            rx="11"
-            ry="32"
-            transform={`rotate(${i * 30})`}
-            className="carved-line"
+            cx={200 + 104 * Math.cos((i * Math.PI) / 16)}
+            cy={302 + 104 * Math.sin((i * Math.PI) / 16)}
+            r="2.4"
+            fill="#ebce94"
           />
         ))}
-        <circle r="15" className="carved-line" />
-        <circle r="6" fill="currentColor" />
+        {lotus(200, 302, 1.45)}
+        {lotus(200, 126, 0.45)}
+        {lotus(200, 494, 0.63)}
+        <rect
+          x="51"
+          y="590"
+          width="298"
+          height="80"
+          rx="3"
+          fill="#302820"
+          stroke={`url(#${key}-gold)`}
+          strokeWidth="8"
+        />
+        {[98, 200, 302].map((x) => (
+          <g key={x}>{lotus(x, 630, 0.45)}</g>
+        ))}
+        {[16, 384].map((x) =>
+          Array.from({ length: 15 }, (_, i) => (
+            <g key={`${x}-${i}`} transform={`translate(${x} ${40 + i * 46})`}>
+              <path d="M0-9 5 0 0 9-5 0Z" fill="#d3ad71" />
+              <circle r="2" fill="#403726" />
+            </g>
+          )),
+        )}
+        {[52, 348].map((x) =>
+          [50, 575, 683].map((y) => (
+            <circle
+              key={`${x}-${y}`}
+              cx={x}
+              cy={y}
+              r="6"
+              fill={`url(#${key}-gold)`}
+              stroke="#302418"
+              strokeWidth="2"
+            />
+          )),
+        )}
       </g>
-      {[117, 200, 283].map((x) => (
-        <g key={x} transform={`translate(${x} 594)`}>
-          <path d="m0-16 16 16L0 16-16 0Z" className="carved-line" />
-          <circle r="4" fill="currentColor" />
-        </g>
-      ))}
+      <rect
+        width="400"
+        height="720"
+        filter={`url(#${key}-grain)`}
+        opacity=".09"
+        style={{ mixBlendMode: "soft-light" }}
+      />
     </svg>
   );
 }
@@ -98,8 +274,8 @@ export default function TempleJourney() {
       const open = smoothstep((progress - 0.07) / 0.66);
       const arrive = smoothstep((progress - 0.57) / 0.43);
       scene.style.setProperty("--journey", progress.toFixed(4));
-      scene.style.setProperty("--door-angle", `${8 + open * 99}deg`);
-      scene.style.setProperty("--door-light", (0.78 - open * 0.35).toFixed(3));
+      scene.style.setProperty("--door-angle", `${open * 88}deg`);
+      scene.style.setProperty("--door-light", (0.95 - open * 0.25).toFixed(3));
       scene.style.setProperty(
         "--intro-opacity",
         (1 - smoothstep((progress - 0.12) / 0.2)).toFixed(3),
@@ -180,18 +356,14 @@ export default function TempleJourney() {
           <div className="doorway" aria-hidden="true">
             <div className="door-leaf door-leaf-left">
               <div className="door-face">
-                <DoorCarving side="left" />
-                <span className="door-stud stud-top" />
-                <span className="door-stud stud-bottom" />
+                <DoorPanels side="left" />
                 <span className="door-pull" />
               </div>
               <div className="door-thickness" />
             </div>
             <div className="door-leaf door-leaf-right">
               <div className="door-face">
-                <DoorCarving side="right" />
-                <span className="door-stud stud-top" />
-                <span className="door-stud stud-bottom" />
+                <DoorPanels side="right" />
                 <span className="door-pull" />
               </div>
               <div className="door-thickness" />

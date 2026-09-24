@@ -21,6 +21,7 @@ export class DomainError extends Error {
 }
 
 const commandNames = new Set([
+  "calendar.command",
   "trip.create",
   "trip.settings",
   "invite.issue",
@@ -41,6 +42,7 @@ const commandNames = new Set([
   "v0.change.propose",
 ]);
 const queryNames = new Set([
+  "calendar.read",
   "trip.list",
   "trip.public_preview",
   "trip.read",
@@ -182,11 +184,13 @@ export function createDomain(
     if (!commandNames.has(name)) throw new DomainError("UNKNOWN_COMMAND", 400);
     try {
       const result = await client.query<{ value: TOutput }>(
-        name.startsWith("v0.")
-          ? "SELECT wm_v0_command($1,$2,$3::jsonb) AS value"
-          : name.startsWith("decision.")
-            ? "SELECT wm_decision_command($1,$2,$3::jsonb) AS value"
-            : "SELECT wm_trip_command($1,$2,$3::jsonb) AS value",
+        name.startsWith("calendar.")
+          ? "SELECT wm_calendar_command($1,$3::jsonb) AS value WHERE $2::text = 'calendar.command'"
+          : name.startsWith("v0.")
+            ? "SELECT wm_v0_command($1,$2,$3::jsonb) AS value"
+            : name.startsWith("decision.")
+              ? "SELECT wm_decision_command($1,$2,$3::jsonb) AS value"
+              : "SELECT wm_trip_command($1,$2,$3::jsonb) AS value",
         [actor.userId, name, JSON.stringify(input)],
       );
       return result.rows[0].value;
@@ -216,14 +220,16 @@ export function createDomain(
       throw new DomainError("UNKNOWN_QUERY", 400);
     try {
       const result = await client.query<{ value: TOutput }>(
-        name.startsWith("v0.")
-          ? "SELECT wm_v0_query($1,$2,$3,$4::jsonb) AS value"
-          : name.startsWith("decision.") ||
-              name === "itinerary.read" ||
-              name === "history.list" ||
-              name === "item.read"
-            ? "SELECT wm_decision_query($1,$2,$3) AS value"
-            : "SELECT wm_trip_query($1,$2,$3) AS value",
+        name.startsWith("calendar.")
+          ? "SELECT wm_calendar_read($1,$3) AS value WHERE $2::text = 'calendar.read'"
+          : name.startsWith("v0.")
+            ? "SELECT wm_v0_query($1,$2,$3,$4::jsonb) AS value"
+            : name.startsWith("decision.") ||
+                name === "itinerary.read" ||
+                name === "history.list" ||
+                name === "item.read"
+              ? "SELECT wm_decision_query($1,$2,$3) AS value"
+              : "SELECT wm_trip_query($1,$2,$3) AS value",
         name.startsWith("v0.")
           ? [
               actor.userId,

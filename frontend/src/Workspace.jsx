@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { auth, sessionConfigured } from "./lib/session";
 import { core, describeError } from "./lib/api";
 import { cities, cityName } from "./data/cities";
 import { DiscoverTrips, Passport } from "./Discovery";
 import DecisionRoom from "./DecisionRoom";
+import CalendarDiscussions from "./CalendarDiscussions";
 import { ballotRequest } from "./lib/decisions";
 import PlanDays from "./PlanDays";
 import PlanCalendar from "./PlanCalendar";
@@ -30,6 +31,11 @@ const historyCopy = (event) => {
   const kind = event.event_kind || event.kind;
   if (kind === "decision.published") return [event.decision?.title || event.detail?.title || "An idea went to a vote", "The group can review and vote before the plan changes."];
   if (kind === "decision.committed") return [event.decision?.title || "The group approved a change", `Approved in plan version ${event.detail?.itinerary_version || "—"}.`];
+  if (kind?.startsWith("calendar.")) {
+    const action = kind.slice(9), input = event.detail?.input || {};
+    const labels = { "branch.create": "An alternate path opened", "branch.join": input.joining ? "A traveller joined a branch" : "A traveller left a branch", "branch.review": "Branch connections were reviewed", change: event.detail?.result?.status === "committed" ? "A branch activity changed" : "A calendar change went to a vote", vote: "A calendar vote was recorded", attendance: "An attendance response changed", question: "A discussion started", reply: "A discussion received a reply", withdraw: "A proposal was withdrawn" };
+    return [labels[action] || "The calendar changed", input.title || input.activity?.title || input.body || "Saved in the shared trip history."];
+  }
   if (kind === "item.moved") return ["An activity moved", "The approved move replaced the earlier time in the shared plan."];
   if (kind === "item.added") return ["An activity joined the plan", "Added after the group reached its voting threshold."];
   return [event.title || String(kind || "Trip update").replaceAll(".", " "), event.description || event.summary || "Recorded in the shared trip history."];
@@ -44,13 +50,51 @@ function Brand({ light = false }) {
   );
 }
 
+function AppHeader({ session, tripId, view, navigate }) {
+  const [open, setOpen] = useState(false);
+  const headerRef = useRef(null);
+  const toggleRef = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const dismiss = event => {
+      if (!headerRef.current?.contains(event.target)) setOpen(false);
+    };
+    const escape = event => {
+      if (event.key === "Escape") { setOpen(false); toggleRef.current?.focus(); }
+    };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [open]);
+  const go = nextView => { setOpen(false); navigate(null, nextView); };
+  return <header className="wm-app-header" ref={headerRef}>
+    <div className="wm-container wm-app-header-inner">
+      <Brand />
+      <button ref={toggleRef} type="button" className="wm-menu-toggle" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="wm-app-navigation" onClick={() => setOpen(!open)}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">{open ? <path d="m6 6 12 12M6 18 18 6" /> : <path d="M4 6h16M4 12h16M4 18h16" />}</svg>
+      </button>
+      <div id="wm-app-navigation" className={`wm-header-navigation${open ? " is-open" : ""}`}>
+        <nav aria-label="App navigation">
+          <button aria-current={!tripId && view === "trips" ? "page" : undefined} onClick={() => go("trips")}>Your trips</button>
+          <button aria-current={!tripId && view === "discover" ? "page" : undefined} onClick={() => go("discover")}>Find a group</button>
+          <button aria-current={!tripId && view === "passport" ? "page" : undefined} onClick={() => go("passport")}>Passport</button>
+        </nav>
+        <div className="wm-account"><span>{session.user.email}</span><button onClick={() => { setOpen(false); auth.auth.signOut(); }}>Sign out</button></div>
+      </div>
+    </div>
+  </header>;
+}
+
 function Notice({ children, tone = "neutral" }) {
   if (!children) return null;
   return <div className={`wm-notice wm-notice-${tone}`} role={tone === "error" ? "alert" : "status"}>{children}</div>;
 }
 
 function AuthScreen({ onSession }) {
-  const [mode, setMode] = useState("signin");
+  const [mode, setMode] = useState(() => new URLSearchParams(window.location.search).get("auth") === "signup" ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -149,7 +193,7 @@ function CreateTrip({ onCreate, busy }) {
 }
 
 function Dashboard({ trips, loading, error, onCreate, onJoin, onRetry, busy, openTrip }) {
-  const [mode, setMode] = useState("trips");
+  const [mode, setMode] = useState(() => new URLSearchParams(window.location.search).get("create") === "1" ? "create" : "trips");
   const [tripId, setTripId] = useState(new URLSearchParams(window.location.search).get("invite_trip") || "");
   const [code, setCode] = useState(new URLSearchParams(window.location.search).get("code") || "");
   return (
@@ -209,6 +253,8 @@ function TripRoom({ tripId, token, onBack }) {
   const [requests, setRequests] = useState([]);
   const [history, setHistory] = useState([]);
   const [forks, setForks] = useState([]);
+  const [calendar, setCalendar] = useState(null);
+  const loadSequence = useRef(0);
   const [messages, setMessages] = useState([]);
   const [genome, setGenome] = useState(null);
   const [unavailable, setUnavailable] = useState({});
@@ -220,6 +266,7 @@ function TripRoom({ tripId, token, onBack }) {
   const [updatedAt, setUpdatedAt] = useState(null);
 
   const load = useCallback(async (quiet = false) => {
+    const sequence = ++loadSequence.current;
     if (!quiet) setLoading(true);
     const encoded = encodeURIComponent(tripId);
     const results = await Promise.allSettled([
@@ -232,8 +279,10 @@ function TripRoom({ tripId, token, onBack }) {
       core(`/trips/${encoded}/forks`, { token }),
       core(`/trips/${encoded}/chat`, { token }),
       core(`/trips/${encoded}/genome`, { token }),
+      core(`/trips/${encoded}/calendar`, { token }),
     ]);
-    const [tripResult, planResult, decisionResult, memberResult, historyResult, requestResult, forkResult, chatResult, genomeResult] = results;
+    if (sequence !== loadSequence.current) return;
+    const [tripResult, planResult, decisionResult, memberResult, historyResult, requestResult, forkResult, chatResult, genomeResult, calendarResult] = results;
     if (tripResult.status === "fulfilled") { setSnapshot(tripResult.value); setError(""); setUpdatedAt(new Date()); }
     else setError(describeError(tripResult.reason));
     if (planResult.status === "fulfilled") setItems(asList(planResult.value, "items"));
@@ -244,7 +293,9 @@ function TripRoom({ tripId, token, onBack }) {
     if (forkResult.status === "fulfilled") setForks(asList(forkResult.value, "forks"));
     if (chatResult.status === "fulfilled") setMessages(asList(chatResult.value, "messages"));
     if (genomeResult.status === "fulfilled") setGenome(genomeResult.value);
+    if (calendarResult.status === "fulfilled") setCalendar(calendarResult.value);
     setUnavailable({
+      calendar: calendarResult.status === "rejected" ? describeError(calendarResult.reason) : "",
       plan: planResult.status === "rejected" ? describeError(planResult.reason) : "",
       decisions: decisionResult.status === "rejected" ? describeError(decisionResult.reason) : "",
       members: memberResult.status === "rejected" ? describeError(memberResult.reason) : "",
@@ -295,10 +346,16 @@ function TripRoom({ tripId, token, onBack }) {
     finally { setBusy(false); }
   }
 
+  function calendarCommand(action, body) { return mutate(`/trips/${encodeURIComponent(tripId)}/calendar/${action}`, body); }
+  function voteOnDecision(decision, vote) {
+    try { return mutate(`/change-sets/${encodeURIComponent(decision.change_set_id || decision.id)}/votes`, ballotRequest(decision, vote)); }
+    catch (caught) { setActionError(describeError(caught)); return false; }
+  }
+
   const trip = snapshot?.trip;
   const settings = snapshot?.settings || {};
   const itinerary = snapshot?.itinerary || {};
-  const version = Number.isInteger(itinerary.version) ? itinerary.version : null;
+  const version = Number.isInteger(calendar?.version) ? calendar.version : Number.isInteger(itinerary.version) ? itinerary.version : null;
   const role = snapshot?.actor_role;
   const safeId = encodeURIComponent(tripId);
   const canVote = role && role !== "guest";
@@ -311,11 +368,8 @@ function TripRoom({ tripId, token, onBack }) {
       <div className="wm-room-hero"><div><span className="wm-kicker">{settings.visibility === "public" ? "OPEN GROUP" : "PRIVATE TRIP"} · {cityName(trip.destination_city_id)}</span><h1>{trip.title}</h1><p>{readableDate(trip.start_date)} — {readableDate(trip.end_date)} <span>·</span> {members.length || "Your"} travellers</p></div><div className="wm-room-meta"><span>Plan version <strong>v{version ?? "—"}</strong></span><small className="wm-live-status"><span aria-hidden="true" />{updatedAt ? "Live sync on" : "Connecting…"}</small></div></div>
       <nav className="wm-tabs" aria-label="Trip room sections">{tabs.map((name) => <button key={name} className={tab === name ? "active" : ""} aria-current={tab === name ? "page" : undefined} onClick={() => setTab(name)}>{name === "people" ? "People & invites" : name === "decisions" ? `Decisions${decisions.length ? ` · ${decisions.length}` : ""}` : name[0].toUpperCase() + name.slice(1)}</button>)}</nav>
       <Notice tone="error">{actionError}</Notice>
-      {tab === "plan" && <div className="wm-room-grid"><section className="wm-panel"><div className="wm-panel-title"><div><span className="wm-kicker">THE SHARED PLAN</span><h2>One place for everyone.</h2></div><div className="wm-plan-switch"><button className={planView === "calendar" ? "active" : ""} onClick={() => setPlanView("calendar")}>Calendar</button><button className={planView === "list" ? "active" : ""} onClick={() => setPlanView("list")}>Day list</button></div></div>{unavailable.plan ? <Notice tone="error">{unavailable.plan}</Notice> : planView === "calendar" ? <PlanCalendar items={items} forks={forks} trip={trip} timezone={settings.timezone} version={version} busy={busy} onMove={(body) => mutate(`/trips/${safeId}/moves`, body)} onFork={(body) => mutate(`/trips/${safeId}/forks`, body)} /> : <PlanDays items={items} trip={trip} timezone={settings.timezone} />}{canVote && <AddProposal trip={trip} version={version} busy={busy} onPublish={(body) => mutate(`/trips/${safeId}/change-sets`, body)} />}</section><aside className="wm-panel wm-side-note"><span className="wm-kicker">HOW THIS ROOM WORKS</span><h3>Every idea has a path.</h3><p>Members propose an activity. Your group votes. Once a proposal passes, the approved change joins the shared plan and its history stays visible.</p><div className="wm-side-rule"><span>01</span> Propose</div><div className="wm-side-rule"><span>02</span> Vote</div><div className="wm-side-rule"><span>03</span> Make it part of the trip</div>{!unavailable.genome && <><div className="wm-side-rule"><span>THE GROUP GENOME</span></div><GroupGenome genome={genome} /></>}</aside></div>}
-      {tab === "decisions" && <DecisionRoom decisions={decisions} unavailable={unavailable.decisions} canVote={canVote} busy={busy} onVote={(decision, vote) => {
-        try { mutate(`/change-sets/${encodeURIComponent(decision.change_set_id || decision.id)}/votes`, ballotRequest(decision, vote)); }
-        catch (caught) { setActionError(describeError(caught)); }
-      }} />}
+      {tab === "plan" && <section className="wm-panel cc-calendar-panel"><div className="wm-panel-title"><div><span className="wm-kicker">THE SHARED PLAN</span><h2>One place for everyone.</h2></div><div className="wm-plan-switch"><button className={planView === "calendar" ? "active" : ""} onClick={() => setPlanView("calendar")}>Calendar</button><button className={planView === "list" ? "active" : ""} onClick={() => setPlanView("list")}>Day list</button></div></div>{unavailable.plan ? <Notice tone="error">{unavailable.plan}</Notice> : planView === "calendar" ? <PlanCalendar items={items} forks={forks} calendar={calendar} unavailable={unavailable.calendar} trip={trip} timezone={settings.timezone} version={version} busy={busy} members={members} canVote={canVote && !!calendar && !unavailable.calendar} decisions={decisions} actionError={actionError} onVote={voteOnDecision} onCommand={calendarCommand} /> : <PlanDays items={items} trip={trip} timezone={settings.timezone} />}</section>}
+      {tab === "decisions" && <><DecisionRoom decisions={decisions} unavailable={unavailable.decisions} canVote={canVote} busy={busy} onVote={voteOnDecision} /><section className="wm-panel"><h2>Calendar changes & discussions</h2><Notice tone="error">{unavailable.calendar}</Notice><CalendarDiscussions proposals={calendar?.proposals || []} busy={busy} onCommand={calendarCommand} /></section></>}
       {tab === "chat" && <ChatRoom messages={messages} members={members} tripTitle={trip.title} unavailable={unavailable.chat} busy={busy} onSend={(body) => mutate(`/trips/${safeId}/chat`, body)} onReviewProposal={() => setTab("decisions")} />}
       {tab === "people" && <div className="wm-room-grid"><section className="wm-panel"><div className="wm-panel-title"><div><span className="wm-kicker">THE PEOPLE IN THIS PLAN</span><h2>Your travel crew.</h2></div></div>{unavailable.members ? <Notice tone="error">{unavailable.members}</Notice> : members.length === 0 ? <div className="wm-empty wm-empty-small">Member list is coming in…</div> : <div className="wm-member-list">{members.map((member) => <div className="wm-member" key={member.user_id}><span className="wm-avatar">{(member.display_name || "T")[0].toUpperCase()}</span><div><strong>{member.display_name}</strong><small>{member.role?.replace("_", " ")}</small></div></div>)}</div>}</section><aside className="wm-panel"><span className="wm-kicker">BRING SOMEONE ALONG</span><h3>There’s room for more stories.</h3>{isOrganizer(role) ? <><p>Create a private invite. The code is shown once so you can share it with someone you trust.</p><button className="wm-secondary" disabled={busy} onClick={() => mutate(`/trips/${safeId}/invites`, { target_role: "participant", max_uses: 5, expires_at: new Date(Date.now() + 7 * 86400000).toISOString() }, setInvite)}>{busy ? "Creating…" : "+ Create invite"}</button>{invite?.code && <div className="wm-invite-result"><span>Invite code</span><code>{invite.code}</code><button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/app?invite_trip=${encodeURIComponent(tripId)}&code=${encodeURIComponent(invite.code)}`)}>Copy invite link</button></div>}</> : <p>Ask your organizer for an invitation link if you want someone else to join.</p>}{isOrganizer(role) && <div className="wm-request-list"><h4>Join requests</h4>{unavailable.requests ? <small>{unavailable.requests}</small> : requests.length === 0 ? <small>No requests waiting.</small> : requests.map((request) => <div className="wm-request" key={request.request_id}><strong>{request.display_name}</strong><p>{request.introduction}</p><button disabled={busy} onClick={() => mutate(`/join-requests/${encodeURIComponent(request.request_id)}/review`, { trip_id: tripId, decision: "accepted" })}>Accept</button><button disabled={busy} onClick={() => mutate(`/join-requests/${encodeURIComponent(request.request_id)}/review`, { trip_id: tripId, decision: "declined" })}>Decline</button></div>)}</div>}</aside></div>}
       {tab === "history" && <section className="wm-panel"><div className="wm-panel-title"><div><span className="wm-kicker">WHY THE PLAN CHANGED</span><h2>A story you can trace.</h2></div></div>{unavailable.history ? <Notice tone="error">{unavailable.history}</Notice> : history.length === 0 ? <div className="wm-empty wm-empty-small"><h3>Nothing has changed yet.</h3><p>Approved proposals and earlier versions will appear here.</p></div> : <div className="wm-history-list">{history.map((event, index) => { const [title, description] = historyCopy(event); return <article key={event.history_id || event.event_id || index}><span className="wm-history-dot"/><div><strong>{title}</strong><p>{description}</p><small>{event.occurred_at ? readableDate(event.occurred_at) : ""}</small></div></article>; })}</div>}</section>}
@@ -374,7 +428,7 @@ export default function Workspace() {
   if (authLoading) return <div className="wm-boot">Opening Convia…</div>;
   if (!session) return <AuthScreen onSession={setSession} />;
   return <div className="workspace">
-    <header className="wm-app-header"><div className="wm-container wm-app-header-inner"><Brand /><nav aria-label="App navigation"><button aria-current={!tripId && view === "trips" ? "page" : undefined} onClick={() => navigate(null)}>Your trips</button><button aria-current={!tripId && view === "discover" ? "page" : undefined} onClick={() => navigate(null, "discover")}>Find a group</button><button aria-current={!tripId && view === "passport" ? "page" : undefined} onClick={() => navigate(null, "passport")}>Passport</button></nav><div className="wm-account"><span>{session.user.email}</span><button onClick={() => auth.auth.signOut()}>Sign out</button></div></div></header>
+    <AppHeader session={session} tripId={tripId} view={view} navigate={navigate} />
     {tripId ? <TripRoom key={tripId} tripId={tripId} token={session.access_token} onBack={() => navigate(null)} /> : view === "passport" ? <Passport token={session.access_token} onDiscover={() => navigate(null, "discover")} /> : view === "discover" ? <DiscoverTrips token={session.access_token} onPassport={() => navigate(null, "passport")} onOpenTrip={navigate} /> : <Dashboard trips={trips} loading={tripsLoading} error={error} onRetry={refreshTrips} busy={busy} openTrip={navigate} onCreate={(body) => act("/trips", body, (result) => navigate(result.trip_id))} onJoin={(id, code) => act("/invites/redeem", { trip_id: id, code }, () => navigate(id))} />}
     <footer className="wm-app-footer wm-container">Made for the trip you will talk about long after it ends. <span>Convia · Team pacmen</span></footer>
   </div>;

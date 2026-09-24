@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { CoreModule, DomainPort } from "../module-contract.js";
+import { calendarModule } from "./calendar/index.js";
 import { conversationsModule } from "./conversations/index.js";
 import { decisionsModule } from "./decisions/index.js";
 import { discoveryModule } from "./discovery/http/index.js";
@@ -18,6 +19,7 @@ export const modules: CoreModule[] = [
   guidesModule,
   mediaCatalogueModule,
   v0Module,
+  calendarModule,
 ];
 
 export async function registerModules(

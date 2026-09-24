@@ -510,7 +510,7 @@ select:focus-visible {
   position: relative;
 }
 .journey-sticky {
-  --door-angle: 8deg;
+  --door-angle: 0deg;
   --door-light: 0.78;
   --intro-opacity: 1;
   --arrival-opacity: 0;
@@ -591,12 +591,12 @@ select:focus-visible {
 .door-leaf-left {
   left: 0;
   transform-origin: left center;
-  transform: rotateY(calc(-1 * var(--door-angle)));
+  transform: rotateY(var(--door-angle));
 }
 .door-leaf-right {
   right: 0;
   transform-origin: right center;
-  transform: rotateY(var(--door-angle));
+  transform: rotateY(calc(-1 * var(--door-angle)));
 }
 .door-face {
   position: absolute;
@@ -891,10 +891,10 @@ select:focus-visible {
   }
   @keyframes passport-arrive {
     from {
-      transform: translateY(35px) rotate(-17deg);
+      transform: translateY(65px) rotate(-23deg);
     }
     to {
-      transform: translateY(-25px) rotate(-5deg);
+      transform: translateY(-35px) rotate(3deg);
     }
   }
   @keyframes orbit-turn {
@@ -1278,7 +1278,7 @@ select:focus-visible {
 }
 @media (max-width: 480px) {
   .header .nav-cta {
-    display: none;
+    display: inline-flex;
   }
   .menu-toggle {
     margin-left: auto;
@@ -1317,4 +1317,60 @@ select:focus-visible {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Clear app entry points at every viewport size. */
+.header .nav-cta { background: var(--ink); color: var(--paper); white-space: nowrap; }
+.hero-signin { font-size: 12px; line-height: 1.5; margin-top: 4px; }
+@media (max-width: 760px) {
+  .header .nav-cta { display: inline-flex; min-height: 42px; padding: 10px 15px; margin-left: auto; font-size: 12px; }
+  .header .menu-toggle { margin-left: 0; flex-shrink: 0; }
+}
+@media (max-width: 380px) {
+  .header { gap: 9px; padding-inline: 5%; }
+  .header .brand { font-size: 27px; }
+  .header .nav-cta svg { display: none; }
+}
+
+/* Recessed timber panels, quiet grain and dark forged hardware. */
+.doorway { perspective: 2200px; }
+.door-face { background: #443526; border: 5px solid #32291f; box-shadow: inset 0 0 0 1px #88705266, inset 0 0 30px #17130e88, 0 3px 14px #100c0877; }
+.door-panels { position: absolute; inset: 0; width: 100%; height: 100%; }
+.door-face:after { background: linear-gradient(110deg,#e1c29512,transparent 45%,#120e0828); }
+.door-pull { top: 50%; width: 18px; height: 65px; border: 4px solid #292821; border-radius: 5px; background: transparent; box-shadow: 2px 3px 2px #0b090980,inset 1px 0 #8f887b66; }
+.door-leaf-left .door-pull { right: 19px; }
+.door-leaf-right .door-pull { left: 19px; }
+.door-thickness { background: #2d251b; width: 16px; }
+@media (max-width:760px) {
+  .doorway { perspective: 1400px; }
+  .door-face { border-width: 3px; }
+  .door-pull { width: 12px; height: 48px; border-width: 3px; }
+  .door-leaf-left .door-pull { right: 9px; }
+  .door-leaf-right .door-pull { left: 9px; }
+}
+
+.passport-float { position: relative; z-index: 1; }
+.passport-book { overflow: hidden; }
+.passport-book::after { content: ""; position: absolute; inset: -40%; pointer-events: none; background: linear-gradient(110deg,transparent 40%,#ffe3b333 49%,transparent 58%); transform: translateX(-90%); }
+@media (prefers-reduced-motion: no-preference) {
+  .passport.is-visible .passport-float { animation: passport-lift 5s ease-in-out infinite; }
+  .passport.is-visible .passport-book::after { animation: passport-glint 6s ease-in-out infinite; }
+  .passport.is-visible .passport-sticker { animation: passport-stamp 5s ease-in-out infinite; }
+  @keyframes passport-lift { 0%,100% { transform: translateY(8px) rotate(-3deg); } 50% { transform: translateY(-14px) rotate(3deg); } }
+  @keyframes passport-glint { 0%,20% { transform: translateX(-90%); } 65%,100% { transform: translateX(90%); } }
+  @keyframes passport-stamp { 0%,100% { transform: translateY(3px) rotate(9deg); } 50% { transform: translateY(-7px) rotate(5deg); } }
+}
+
+/* An imagined palace gateway: carved cusped arches, lotus relief and aged brass. */
+.door-face { border-color: #46301e; background: #4e3426; box-shadow: inset 0 0 0 2px #c0985866, 0 0 28px #090c0899; }
+.door-face:after { background: linear-gradient(115deg,#f9d49a12,transparent 40%,#0e120b35); }
+.door-pull { top: 52%; width: 30px; height: 43px; border: 6px solid #b39055; border-radius: 50%; background: transparent; box-shadow: 0 5px 5px #0b0909aa,inset 1px 1px 2px #ffe0a299; }
+.door-pull:before { content: ""; position: absolute; width: 17px; height: 17px; left: 1px; top: -17px; transform: rotate(45deg); background: linear-gradient(135deg,#d3b174,#79562d); border: 2px solid #6b4b29; box-shadow: 2px 2px 4px #100b08; }
+.door-leaf-left .door-pull { right: 20px; }
+.door-leaf-right .door-pull { left: 20px; }
+@media(max-width:760px) {
+ .door-pull { width: 18px; height: 30px; border-width: 4px; }
+ .door-pull:before { width: 11px; height: 11px; left: 0; top: -12px; }
+ .door-leaf-left .door-pull { right: 9px; }
+ .door-leaf-right .door-pull { left: 9px; }
 }

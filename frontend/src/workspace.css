@@ -224,7 +224,7 @@
 .wm-calendar-dialog-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: #1d2925a8; }
 .wm-calendar-dialog { width: min(490px, 100%); }
 .wm-calendar-dialog p { margin: -10px 0 2px; color: #756b61; font-size: 14px; line-height: 1.6; }
-.wm-chat-shell { display: grid; grid-template-columns: minmax(0, 1fr) 288px; gap: 18px; align-items: stretch; }
+.wm-chat-shell { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: stretch; }
 .wm-chat-main { display: flex; flex-direction: column; min-width: 0; min-height: 650px; overflow: hidden; border: 1px solid #e0d4c6; border-radius: 22px; background: #fcf8f1; box-shadow: 0 16px 55px #533e2410; }
 .wm-chat-header { display: flex; align-items: center; gap: 15px; min-height: 102px; padding: 20px 26px; border-bottom: 1px solid #e2d5c7; background: #fffaf3; }
 .wm-chat-room-icon { display: grid; place-items: center; flex: 0 0 49px; height: 49px; border-radius: 16px; background: #e9d2c3; color: #a65339; font-family: "Manrope", sans-serif; font-size: 28px; font-weight: 800; }
@@ -267,17 +267,25 @@
 .wm-chat-send:disabled { opacity: .45; }
 .wm-chat-compose-footer { display: flex; justify-content: space-between; gap: 12px; padding: 10px 4px 0; color: #86796e; font-size: 11px; }
 .wm-chat-compose-footer button { padding: 0; background: transparent; color: #a5573d; font-size: 12px; font-weight: 800; }
-.wm-chat-aside { align-self: start; padding: 28px 24px; border: 1px solid #d9cbbd; border-radius: 22px; background: #eee5d9; }
-.wm-chat-aside h3 { margin: 17px 0 11px; font-family: "Instrument Serif", Georgia, serif; font-size: 37px; font-weight: 400; line-height: 1.03; }
-.wm-chat-aside p { color: #74695f; font-size: 14px; line-height: 1.65; }
-.wm-chat-aside > button { display: flex; justify-content: space-between; width: 100%; margin: 25px 0 21px; padding: 12px 15px; border-radius: 12px; background: #293d35; color: #fff9f1; font-size: 13px; font-weight: 800; }
-.wm-chat-aside > button:hover { background: #405d50; }
-.wm-chat-aside-rule { display: flex; gap: 13px; padding: 12px 0; border-top: 1px solid #d8c9b9; color: #544c43; font-size: 12px; font-weight: 700; }
-.wm-chat-aside-rule span { color: #b35c42; }
 .wm-genome-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .wm-side-note .wm-genome-grid { grid-template-columns: 1fr; }
 .wm-genome-card { min-height: 110px; padding: 17px; border: 1px solid #ddd0c2; border-radius: 13px; background: #fffaf3; }
 .wm-genome-card strong { display: block; margin: 10px 0 4px; font-family: "Instrument Serif", Georgia, serif; font-size: 24px; font-weight: 400; }
 .wm-genome-card p { margin: 0; color: #756b61; font-size: 13px; line-height: 1.5; }
-@media (max-width: 900px) { .wm-chat-shell { grid-template-columns: 1fr; } .wm-chat-aside { display: none; } }
+
 @media (max-width: 700px) { .wm-calendar-guide { flex-direction: column; } .wm-genome-grid { grid-template-columns: 1fr; } .wm-chat-row { max-width: 94%; } .wm-chat-header { padding: 17px; } .wm-chat-avatars { display: none; } .wm-chat-compose-area { padding: 13px; } .wm-chat-compose-footer > span { display: none; } }
+
+.wm-header-navigation { display: contents; }
+.wm-menu-toggle { display: none; }
+@media (max-width: 760px) {
+  .wm-app-header-inner { position: relative; min-height: 68px; flex-wrap: nowrap; justify-content: space-between; gap: 16px; padding-top: 0; padding-bottom: 0; }
+  .wm-menu-toggle { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid #d4c4b5; border-radius: 12px; background: transparent; color: #272522; }
+  .wm-header-navigation { display: none; position: absolute; top: calc(100% + 8px); left: 0; right: 0; padding: 12px; background: #fffaf3; border: 1px solid #dfd3c7; border-radius: 16px; box-shadow: 0 14px 35px #27252218; }
+  .wm-header-navigation.is-open { display: block; }
+  .wm-app-header .wm-header-navigation nav { display: flex; flex-direction: column; align-items: stretch; gap: 3px; width: 100%; margin: 0; padding: 0; }
+  .wm-app-header .wm-header-navigation nav button { padding: 13px 12px; text-align: left; border-radius: 9px; }
+  .wm-app-header .wm-header-navigation nav button:hover, .wm-app-header .wm-header-navigation nav button[aria-current="page"] { background: #f0e6da; }
+  .wm-header-navigation .wm-account { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0 0; padding: 14px 12px 4px; border-top: 1px solid #dfd3c7; }
+  .wm-header-navigation .wm-account span { display: block; overflow-wrap: anywhere; min-width: 0; font-size: 12px; }
+  .wm-header-navigation .wm-account button { flex-shrink: 0; min-height: 40px; }
+}

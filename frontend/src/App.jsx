@@ -136,13 +136,8 @@ export default function App() {
     [selected, setSelected] = useState(null),
     [saved, setSaved] = useState([]),
     [voted, setVoted] = useState(false),
-    [modal, setModal] = useState(null),
-    [draft, setDraft] = useState({
-      destination: "",
-      style: "A little of everything",
-      date: "",
-    }),
-    [created, setCreated] = useState(false);
+    [modal, setModal] = useState(null);
+
   const modalRef = useRef(null),
     previousFocus = useRef(null);
   useEffect(() => {
@@ -196,21 +191,10 @@ export default function App() {
     setSelected(trip);
     setModal("trip");
   }
-  function openCreate() {
-    setCreated(false);
-    setModal("create");
-  }
   function saveTrip(id) {
     setSaved((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-  }
-  function createDraft(e) {
-    e.preventDefault();
-    try {
-      localStorage.setItem("convia-trip-draft", JSON.stringify(draft));
-    } catch {}
-    setCreated(true);
   }
   const filtered =
     filter === "All moods" ? trips : trips.filter((t) => t.type === filter);
@@ -226,7 +210,7 @@ export default function App() {
         </a>
         <nav className={menu ? "nav open" : "nav"} aria-label="Main navigation">
           <a href="#discover" onClick={() => setMenu(false)}>
-            Find your people
+            Trip inspiration
           </a>
           <a href="#together" onClick={() => setMenu(false)}>
             The Convia way
@@ -236,7 +220,7 @@ export default function App() {
           </a>
         </nav>
         <a className="button nav-cta" href="/app">
-          Let’s go somewhere <Icon name="diagonal" size={16} />
+          Sign in <Icon name="diagonal" size={16} />
         </a>
         <button
           className="menu-toggle"
@@ -267,10 +251,12 @@ export default function App() {
                 <br />
                 The right people change everything.
               </p>
-              <a className="button primary" href="#discover">
-                Find my kind of trip <Icon name="diagonal" />
+              <a className="button primary" href="/app?auth=signup">
+                Create an account <Icon name="diagonal" />
               </a>
-              <div className="small-note">Come solo. Leave with stories.</div>
+              <a className="text-link hero-signin" href="/app">
+                Already have an account? Sign in
+              </a>
             </div>
           </div>
           <TempleJourney />
@@ -419,7 +405,9 @@ export default function App() {
                       {t.days} <span>·</span> {t.people}
                     </span>
                     <button
-                      aria-label={"Explore " + t.place}
+                      aria-label={
+                        "Preview itinerary inspiration for " + t.place
+                      }
                       className="circle-button"
                       onClick={() => openTrip(t)}
                     >
@@ -437,10 +425,9 @@ export default function App() {
           </div>
           <div className="discover-footer">
             <span>No perfect itinerary required. Just a little curiosity.</span>
-            <button className="text-link" onClick={openCreate}>
-              Have somewhere in mind? Start a trip{" "}
-              <Icon name="diagonal" size={17} />
-            </button>
+            <a className="text-link" href="/app?create=1">
+              Start planning a trip <Icon name="diagonal" size={17} />
+            </a>
           </div>
         </section>
         <section id="trippy" className="trippy-section">
@@ -463,7 +450,7 @@ export default function App() {
                 Trippy proposes. Your people decide.
               </p>
               <a href="#decision-preview" className="button terra">
-                See a group decision <Icon name="arrow" />
+                Try the voting preview <Icon name="arrow" />
               </a>
               <div className="trippy-fine">
                 GOOD IDEAS NEED COMPANY. SO DO GOOD PLANS.
@@ -555,39 +542,41 @@ export default function App() {
                 <Icon name={voted ? "lock" : "people"} size={17} />
                 <span>
                   {voted
-                    ? "A shared yes. A real plan."
+                    ? "A shared yes. A preview plan."
                     : "Less “any updates?”\nMore “see you there.”"}
                 </span>
               </div>
             </div>
           </div>
         </section>
-        <section className="passport section reveal">
+        <section id="passport" className="passport section reveal">
           <div className="passport-art">
             <div className="orbit orbit-one" />
             <div className="orbit orbit-two" />
             <span className="orbit-star">✳</span>
-            <div className="passport-book">
-              <div className="passport-book-top">
-                <Mark />
-                <span>
-                  CONVIA
+            <div className="passport-float">
+              <div className="passport-book">
+                <div className="passport-book-top">
+                  <Mark />
+                  <span>
+                    CONVIA
+                    <br />
+                    TRAVEL PASSPORT
+                  </span>
+                </div>
+                <div className="passport-emblem">
+                  <Icon name="sun" size={54} />
+                  <span>
+                    THE WORLD
+                    <br />
+                    IS YOUR KIND OF PLACE
+                  </span>
+                </div>
+                <div className="passport-bottom">
+                  CURIOUS BY NATURE.
                   <br />
-                  TRAVEL PASSPORT
-                </span>
-              </div>
-              <div className="passport-emblem">
-                <Icon name="sun" size={54} />
-                <span>
-                  THE WORLD
-                  <br />
-                  IS YOUR KIND OF PLACE
-                </span>
-              </div>
-              <div className="passport-bottom">
-                CURIOUS BY NATURE.
-                <br />
-                OPEN TO POSSIBILITY.<span>↗</span>
+                  OPEN TO POSSIBILITY.<span>↗</span>
+                </div>
               </div>
             </div>
             <span className="passport-sticker">
@@ -614,21 +603,18 @@ export default function App() {
             </p>
             <div className="passport-options">
               <span>
-                <Icon name="check" size={16} /> Bring your AI context
+                <Icon name="check" size={16} /> Import travel preferences
               </span>
               <span>
-                <Icon name="check" size={16} /> Talk it out
+                <Icon name="check" size={16} /> Set your pace & budget
               </span>
               <span>
                 <Icon name="check" size={16} /> Or just start exploring
               </span>
             </div>
-            <button
-              className="button dark"
-              onClick={() => setModal("passport")}
-            >
-              Find my travel vibe <Icon name="diagonal" size={18} />
-            </button>
+            <a className="button dark" href="/app?view=passport">
+              Build my travel Passport <Icon name="diagonal" size={18} />
+            </a>
             <small>Optional, always. You’re more than an algorithm.</small>
           </div>
         </section>
@@ -640,9 +626,9 @@ export default function App() {
             <em>Belong somewhere.</em>
             <span>✳</span>
           </h2>
-          <button className="button dark" onClick={openCreate}>
-            Make room for a little adventure <Icon name="diagonal" />
-          </button>
+          <a className="button dark" href="/app?create=1">
+            Start planning a trip <Icon name="diagonal" />
+          </a>
           <div className="closing-coordinates">
             NEW PLACES. YOUR PEOPLE. ALL THE POSSIBILITIES.
           </div>
@@ -703,148 +689,11 @@ export default function App() {
                       </li>
                     ))}
                   </ol>
-                  <button
-                    className="button dark"
-                    onClick={() => {
-                      setDraft({ ...draft, destination: selected.place });
-                      setCreated(false);
-                      setModal("create");
-                    }}
-                  >
-                    Make this my starting point <Icon name="arrow" />
-                  </button>
+                  <a className="button dark" href="/app?create=1">
+                    Start planning a trip <Icon name="arrow" />
+                  </a>
                 </div>
               </>
-            )}
-            {modal === "create" && (
-              <div className="modal-content">
-                <div className="eyebrow">EVERY GOOD TRIP STARTS SOMEWHERE</div>
-                <h2 id="dialog-title">
-                  {created ? "Your next chapter." : "Where are we going?"}
-                </h2>
-                {created ? (
-                  <>
-                    <div className="draft-success">
-                      <Icon name="check" size={30} />
-                      <h3>{draft.destination}</h3>
-                      <p>
-                        {draft.style}
-                        {draft.date ? " · " + draft.date : ""}
-                      </p>
-                    </div>
-                    <p>
-                      Your trip idea is saved in this browser. Shared trips and
-                      invitations will connect when the backend is ready.
-                    </p>
-                    <button
-                      className="button dark"
-                      onClick={() => setModal(null)}
-                    >
-                      Keep exploring <Icon name="arrow" />
-                    </button>
-                  </>
-                ) : (
-                  <form onSubmit={createDraft}>
-                    <label>
-                      Somewhere on your mind
-                      <input
-                        required
-                        maxLength={100}
-                        placeholder="Ellora? Gokarna? Somewhere new?"
-                        value={draft.destination}
-                        onChange={(e) =>
-                          setDraft({ ...draft, destination: e.target.value })
-                        }
-                      />
-                    </label>
-                    <label>
-                      Your kind of trip
-                      <select
-                        value={draft.style}
-                        onChange={(e) =>
-                          setDraft({ ...draft, style: e.target.value })
-                        }
-                      >
-                        {[
-                          "A little of everything",
-                          "Culture & curiosity",
-                          "Trails & adventure",
-                          "Slow days & good company",
-                        ].map((x) => (
-                          <option key={x}>{x}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      When? <span className="optional">Optional</span>
-                      <input
-                        type="date"
-                        value={draft.date}
-                        onChange={(e) =>
-                          setDraft({ ...draft, date: e.target.value })
-                        }
-                      />
-                    </label>
-                    <button className="button dark form-submit" type="submit">
-                      Save my trip idea <Icon name="diagonal" />
-                    </button>
-                    <p className="form-note">
-                      A local draft for now. No account or live group is
-                      created.
-                    </p>
-                  </form>
-                )}
-              </div>
-            )}
-            {modal === "passport" && (
-              <div className="modal-content">
-                <div className="eyebrow">YOUR PASSPORT STARTS WITH YOU</div>
-                <h2 id="dialog-title">What feels like you?</h2>
-                <p>
-                  Choose a mood to explore trip inspiration. Your full Passport
-                  and conversational onboarding are coming with the app.
-                </p>
-                <div className="vibe-options">
-                  {[
-                    ["Adventure", "↗", "Take the scenic route"],
-                    ["Culture", "⌑", "Find a story in every street"],
-                    ["Unwind", "☼", "Let the day happen"],
-                  ].map(([f, s, label]) => (
-                    <button
-                      key={f}
-                      onClick={() => {
-                        setFilter(f);
-                        setModal(null);
-                        setTimeout(
-                          () =>
-                            document
-                              .querySelector("#discover")
-                              .scrollIntoView({ behavior: "smooth" }),
-                          30,
-                        );
-                      }}
-                    >
-                      <span>{s}</span>
-                      <div>
-                        <strong>{f}</strong>
-                        <small>{label}</small>
-                      </div>
-                      <Icon name="diagonal" />
-                    </button>
-                  ))}
-                </div>
-                <button
-                  className="text-link"
-                  onClick={() => {
-                    setModal(null);
-                    document
-                      .querySelector("#discover")
-                      .scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  Just let me wander <Icon name="arrow" size={17} />
-                </button>
-              </div>
             )}
             {modal === "about" && (
               <div className="modal-content">
@@ -852,13 +701,14 @@ export default function App() {
                 <h2 id="dialog-title">A first look at Convia.</h2>
                 <p>
                   This is the interactive landing experience for our WanderMatch
-                  build. Trip cards are inspiration, the voting interaction is a
-                  local demonstration, and trip ideas save only to this browser.
+                  build. Trip cards are inspiration and the voting interaction
+                  is a local demonstration. Sign in to create or join real
+                  shared trips.
                 </p>
                 <p>
-                  Real accounts, matching, Trippy and shared voting are
-                  specified in the project architecture and will be connected
-                  separately. Temple art is an AI-generated artistic
+                  Accounts, travel Passports, shared calendars and group voting
+                  are available in the app. Trippy requires a configured server
+                  connection. Temple art is an AI-generated artistic
                   interpretation of Kailasa.
                 </p>
                 <button className="button dark" onClick={() => setModal(null)}>

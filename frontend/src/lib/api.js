@@ -36,6 +36,13 @@ export async function core(path, { token, method = "GET", body, signal } = {}) {
 
 export function describeError(error) {
   const known = {
+    BRANCH_DEPTH_LIMIT: "A branch can be nested at most five levels deep.",
+    BRANCH_NOT_FOUND: "This branch was cancelled or is no longer available.",
+    BRANCH_MEMBERSHIP_REQUIRED: "Join this branch before suggesting changes or responding to its activities.",
+    OUTSIDE_BRANCH_WINDOW: "Activities and nested branches must fit between this branch’s split and rejoin times.",
+    INVALID_REJOIN: "Choose a later rejoin point in the parent plan, within the trip dates.",
+    SOURCE_NOT_FOUND: "The split activity changed. Choose an existing activity in the parent plan.",
+    DECISION_FORBIDDEN: "You do not have permission to make this change or vote on it.",
     AUTH_REQUIRED: "Your session has ended. Please sign in again.",
     INVALID_SESSION: "Your session has ended. Please sign in again.",
     MEMBERSHIP_REQUIRED: "You are not a member of this trip yet.",

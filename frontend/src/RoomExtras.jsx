@@ -62,7 +62,6 @@ export function ChatRoom({ messages, members = [], tripTitle, unavailable, busy,
         </div>
       </>}
     </div>
-    <aside className="wm-chat-aside"><span className="wm-kicker">CONVIA, IN THE ROOM</span><h3>Make the next move together.</h3><p>Trippy can turn a question into a suggested itinerary change. Your group still decides whether it becomes part of the plan.</p><button type="button" onClick={() => mentionTrippy("@Trippy suggest an activity for our trip ")}>Ask for an idea <span aria-hidden="true">↗</span></button><div className="wm-chat-aside-rule"><span>01</span> Talk it through</div><div className="wm-chat-aside-rule"><span>02</span> Review the proposal</div><div className="wm-chat-aside-rule"><span>03</span> Vote before the plan changes</div></aside>
   </section>;
 }
 
