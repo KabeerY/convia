@@ -1,0 +1,1204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://convia.local/contracts/domain.schema.json",
+  "title": "Convia shared transport contracts v1",
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "Instant": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "Date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "Money": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "properties": {
+        "amount": {
+          "type": "string",
+          "pattern": "^-?(?:0|[1-9]\\d*)\\.\\d{2}$"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      }
+    },
+    "ErrorEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "error"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "message"
+          ],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "action": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "PageRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    },
+    "RevisionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "logical_item_id",
+        "expected_revision"
+      ],
+      "properties": {
+        "logical_item_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "AddOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "new_item"
+      ],
+      "properties": {
+        "action": {
+          "const": "add"
+        },
+        "new_item": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "cost": {
+          "$ref": "#/$defs/Money"
+        },
+        "cost_basis": {
+          "enum": [
+            "party",
+            "person",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "RemoveOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "logical_item_id",
+        "expected_revision"
+      ],
+      "properties": {
+        "action": {
+          "const": "remove"
+        },
+        "logical_item_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "ReplaceOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "logical_item_id",
+        "expected_revision",
+        "new_item"
+      ],
+      "properties": {
+        "action": {
+          "const": "replace"
+        },
+        "logical_item_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "new_item": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "cost": {
+          "$ref": "#/$defs/Money"
+        },
+        "cost_basis": {
+          "enum": [
+            "party",
+            "person",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "RescheduleOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "logical_item_id",
+        "expected_revision",
+        "starts_at",
+        "ends_at"
+      ],
+      "properties": {
+        "action": {
+          "const": "reschedule"
+        },
+        "logical_item_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "starts_at": {
+          "$ref": "#/$defs/Instant"
+        },
+        "ends_at": {
+          "$ref": "#/$defs/Instant"
+        }
+      }
+    },
+    "ChangeOperation": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AddOperation"
+        },
+        {
+          "$ref": "#/$defs/RemoveOperation"
+        },
+        {
+          "$ref": "#/$defs/ReplaceOperation"
+        },
+        {
+          "$ref": "#/$defs/RescheduleOperation"
+        }
+      ]
+    },
+    "PublishChangeSetRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_itinerary_version",
+        "title",
+        "operations"
+      ],
+      "properties": {
+        "base_itinerary_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ChangeOperation"
+          }
+        },
+        "requested_closes_at": {
+          "$ref": "#/$defs/Instant"
+        }
+      }
+    },
+    "BallotRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vote",
+        "expected_revision"
+      ],
+      "properties": {
+        "vote": {
+          "enum": [
+            "yes",
+            "no"
+          ]
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "ChangeSetState": {
+      "enum": [
+        "open",
+        "committed",
+        "rejected",
+        "expired",
+        "stale",
+        "invalidated"
+      ]
+    },
+    "DecisionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_set_id",
+        "state",
+        "base_itinerary_version",
+        "eligible_count",
+        "threshold",
+        "yes_count",
+        "no_count",
+        "closes_at"
+      ],
+      "properties": {
+        "change_set_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "state": {
+          "$ref": "#/$defs/ChangeSetState"
+        },
+        "base_itinerary_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "eligible_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "yes_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "no_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closes_at": {
+          "$ref": "#/$defs/Instant"
+        },
+        "committed_itinerary_version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "EventEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "trip_id",
+        "sequence",
+        "kind",
+        "resource_id",
+        "occurred_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "trip_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "enum": [
+            "membership.changed",
+            "proposal.published",
+            "vote.recorded",
+            "decision.committed",
+            "proposal.closed",
+            "message.created",
+            "genome.updated",
+            "media.processed",
+            "collage.completed"
+          ]
+        },
+        "resource_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "itinerary_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/Instant"
+        }
+      }
+    },
+    "JobEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "queue",
+        "type",
+        "state",
+        "attempt",
+        "lease_generation"
+      ],
+      "properties": {
+        "job_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "queue": {
+          "enum": [
+            "core",
+            "trippy",
+            "media"
+          ]
+        },
+        "type": {
+          "enum": [
+            "proposal_expiry",
+            "genome_refresh",
+            "notification_delivery",
+            "agent_run",
+            "passport_extract",
+            "photo_process",
+            "reference_match",
+            "collage_render"
+          ]
+        },
+        "state": {
+          "enum": [
+            "queued",
+            "leased",
+            "running",
+            "retry_wait",
+            "succeeded",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lease_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lease_expires_at": {
+          "$ref": "#/$defs/Instant"
+        },
+        "trip_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Id"
+        }
+      }
+    },
+    "ServiceCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "run_id",
+        "actor_id",
+        "trip_id",
+        "operation",
+        "expires_at",
+        "lease_generation"
+      ],
+      "properties": {
+        "job_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "trip_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "operation": {
+          "type": "string"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/Instant"
+        },
+        "lease_generation": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "GetTripContextTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "get_trip_context"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "SearchPlacesTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "search_places"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "query"
+          ],
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1
+            },
+            "destination": {
+              "type": "string"
+            },
+            "radius_meters": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "language": {
+              "type": "string"
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "GetPlaceDetailsTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "get_place_details"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "place_id",
+            "fields"
+          ],
+          "properties": {
+            "place_id": {
+              "$ref": "#/$defs/Id"
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "SearchVenueInformationTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "search_venue_information"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "query"
+          ],
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1
+            },
+            "place_id": {
+              "$ref": "#/$defs/Id"
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "EstimateRoutesTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "estimate_routes"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "place_ids",
+            "mode"
+          ],
+          "properties": {
+            "place_ids": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/Id"
+              }
+            },
+            "mode": {
+              "enum": [
+                "walk",
+                "drive",
+                "transit"
+              ]
+            },
+            "departure_at": {
+              "$ref": "#/$defs/Instant"
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "PreviewChangeSetTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "preview_change_set"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "base_itinerary_version",
+            "operations"
+          ],
+          "properties": {
+            "base_itinerary_version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "operations": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/ChangeOperation"
+              }
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "CreateChangeSetTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "create_change_set"
+        },
+        "arguments": {
+          "$ref": "#/$defs/PublishChangeSetRequest"
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "CreateAlternativeBranchTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "create_alternative_branch"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_itinerary_version",
+            "title"
+          ],
+          "properties": {
+            "source_itinerary_version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "UpdateAlternativeBranchTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "update_alternative_branch"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "branch_id",
+            "expected_revision",
+            "operations"
+          ],
+          "properties": {
+            "branch_id": {
+              "$ref": "#/$defs/Id"
+            },
+            "expected_revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "operations": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/ChangeOperation"
+              }
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ProposeBranchMergeTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "propose_branch_merge"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "branch_id",
+            "expected_revision",
+            "title"
+          ],
+          "properties": {
+            "branch_id": {
+              "$ref": "#/$defs/Id"
+            },
+            "expected_revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ExplainDecisionTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "arguments",
+        "dedupe_key"
+      ],
+      "properties": {
+        "tool": {
+          "const": "explain_decision"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change_set_id"
+          ],
+          "properties": {
+            "change_set_id": {
+              "$ref": "#/$defs/Id"
+            }
+          }
+        },
+        "dedupe_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ToolCall": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/GetTripContextTool"
+        },
+        {
+          "$ref": "#/$defs/SearchPlacesTool"
+        },
+        {
+          "$ref": "#/$defs/GetPlaceDetailsTool"
+        },
+        {
+          "$ref": "#/$defs/SearchVenueInformationTool"
+        },
+        {
+          "$ref": "#/$defs/EstimateRoutesTool"
+        },
+        {
+          "$ref": "#/$defs/PreviewChangeSetTool"
+        },
+        {
+          "$ref": "#/$defs/CreateChangeSetTool"
+        },
+        {
+          "$ref": "#/$defs/CreateAlternativeBranchTool"
+        },
+        {
+          "$ref": "#/$defs/UpdateAlternativeBranchTool"
+        },
+        {
+          "$ref": "#/$defs/ProposeBranchMergeTool"
+        },
+        {
+          "$ref": "#/$defs/ExplainDecisionTool"
+        }
+      ]
+    },
+    "PassportCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "value",
+        "source",
+        "confirmed"
+      ],
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "explicit_form",
+            "user_confirmed_extraction",
+            "unconfirmed_inference",
+            "system_default"
+          ]
+        },
+        "confirmed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "GenomeFactor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "coverage",
+        "known"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "known": {
+          "type": "boolean"
+        }
+      }
+    },
+    "MatchResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trip_id",
+        "eligibility",
+        "coverage",
+        "factors",
+        "score_version"
+      ],
+      "properties": {
+        "trip_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "eligibility": {
+          "enum": [
+            "compatible",
+            "incompatible",
+            "needs_confirmation"
+          ]
+        },
+        "fit_percentage": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "factors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GenomeFactor"
+          }
+        },
+        "score_version": {
+          "type": "string"
+        }
+      }
+    },
+    "ConversationMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "message_id",
+        "conversation_id",
+        "sender_id",
+        "client_message_id",
+        "body",
+        "created_at"
+      ],
+      "properties": {
+        "message_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "conversation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "sender_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "client_message_id": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "change_set_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "created_at": {
+          "$ref": "#/$defs/Instant"
+        }
+      }
+    },
+    "Enquiry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enquiry_id",
+        "trip_id",
+        "sender_id",
+        "recipient_ids"
+      ],
+      "properties": {
+        "enquiry_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "trip_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "sender_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "recipient_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Id"
+          }
+        }
+      }
+    },
+    "LocationGrant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grant_id",
+        "trip_id",
+        "owner_id",
+        "recipient_ids",
+        "expires_at"
+      ],
+      "properties": {
+        "grant_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "trip_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "owner_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "recipient_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id"
+          }
+        },
+        "expires_at": {
+          "$ref": "#/$defs/Instant"
+        }
+      }
+    },
+    "ContactGrant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grant_id",
+        "contact_id",
+        "owner_id",
+        "recipient_id",
+        "expires_at"
+      ],
+      "properties": {
+        "grant_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "contact_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "owner_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "recipient_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/Instant"
+        }
+      }
+    },
+    "FaceConsent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trip_id",
+        "subject_id",
+        "reference_id",
+        "granted_at"
+      ],
+      "properties": {
+        "trip_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "subject_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "reference_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "granted_at": {
+          "$ref": "#/$defs/Instant"
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/Instant"
+        }
+      }
+    },
+    "MediaResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "trip_id",
+        "media_id",
+        "state",
+        "model_version"
+      ],
+      "properties": {
+        "job_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "trip_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "media_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "state": {
+          "enum": [
+            "processed",
+            "no_face",
+            "failed"
+          ]
+        },
+        "model_version": {
+          "type": "string"
+        },
+        "candidate_reference_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "schema": "Money",
+  "valid": false,
+  "payload": { "amount": 800.0, "currency": "INR" }
+}

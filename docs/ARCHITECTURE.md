@@ -26,7 +26,7 @@ Read with [PRODUCT.md](PRODUCT.md) and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_P
 |---|---|---|
 | SVC-01 Frontend | React, Vite, TypeScript, React Router | Reuse visual ideas from prototype; fresh typed state and APIs |
 | UI | Tailwind/design tokens, accessible primitives, TanStack Query | Separate visual state from server-owned state |
-| Landing animation | GSAP ScrollTrigger, layered optimized imagery | Cinematic temple reveal with mobile/reduced-motion alternatives |
+| Landing animation | Existing requestAnimationFrame/CSS 3D, layered optimized imagery | The implemented temple reveal and reduced-motion path remain in place; GSAP is optional for later app work, not a PR-01 rewrite |
 | SVC-02 Core | Node.js, Fastify, Zod, PostgreSQL driver, decimal.js | Typed command boundary; exact money; one decision transaction |
 | SVC-03 Trippy | Python, FastAPI, Google GenAI SDK, Pydantic | Tool use, grounded assistance, preference extraction and voice |
 | SVC-04 Media | Python worker, OpenCV YuNet/SFace, Pillow | Face matching and collage generation independent of request latency |

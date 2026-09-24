@@ -1,0 +1,10 @@
+{
+  "schema": "PublishChangeSetRequest",
+  "valid": false,
+  "payload": {
+    "actor_id": "usr_forged",
+    "base_itinerary_version": 12,
+    "title": "Move lunch",
+    "operations": [{ "action": "remove", "logical_item_id": "wli_demo", "expected_revision": 2 }]
+  }
+}

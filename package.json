@@ -1,0 +1,26 @@
+{
+  "name": "convia",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev:web": "pnpm --filter convia-web dev",
+    "dev:core": "pnpm --filter @convia/core-api dev",
+    "dev:core-jobs": "pnpm --filter @convia/core-api dev:jobs",
+    "contracts:generate": "pnpm --filter @convia/contracts generate",
+    "contracts:check": "pnpm --filter @convia/contracts check",
+    "db:migrate": "node scripts/pending-step.mjs migrations-PR-02",
+    "db:seed": "node scripts/pending-step.mjs canonical-seed-PR-02",
+    "test:unit": "pnpm --filter @convia/contracts test && pnpm --filter @convia/core-api test",
+    "test:integration": "node scripts/pending-step.mjs integration-tests-PR-02",
+    "test:e2e": "node scripts/pending-step.mjs browser-tests-PR-07",
+    "test:conformance": "node scripts/pending-step.mjs canonical-conformance-PR-02",
+    "lint": "pnpm exec biome check backend/core-api/src packages/contracts/scripts",
+    "typecheck": "pnpm --filter @convia/core-api typecheck && pnpm --filter @convia/contracts typecheck",
+    "build": "pnpm --filter @convia/contracts build && pnpm --filter @convia/core-api build && pnpm --filter convia-web build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.4",
+    "typescript": "5.9.2"
+  }
+}

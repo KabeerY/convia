@@ -1,0 +1,9 @@
+{
+  "schema": "PublishChangeSetRequest",
+  "valid": false,
+  "payload": {
+    "base_itinerary_version": 12,
+    "title": "Move lunch",
+    "operations": [{ "action": "reschedule", "logical_item_id": "wli_demo", "starts_at": "2026-09-25T07:30:00Z", "ends_at": "2026-09-25T08:30:00Z" }]
+  }
+}

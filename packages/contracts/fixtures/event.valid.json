@@ -1,0 +1,14 @@
+{
+  "schema": "EventEnvelope",
+  "valid": true,
+  "payload": {
+    "schema_version": 1,
+    "event_id": "wev_demo",
+    "trip_id": "trp_demo",
+    "sequence": 42,
+    "kind": "decision.committed",
+    "resource_id": "wcs_demo",
+    "itinerary_version": 13,
+    "occurred_at": "2026-09-24T14:00:00Z"
+  }
+}

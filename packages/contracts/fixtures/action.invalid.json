@@ -1,0 +1,9 @@
+{
+  "schema": "PublishChangeSetRequest",
+  "valid": false,
+  "payload": {
+    "base_itinerary_version": 12,
+    "title": "Force unlock",
+    "operations": [{ "action": "unlock", "logical_item_id": "wli_demo", "expected_revision": 2 }]
+  }
+}

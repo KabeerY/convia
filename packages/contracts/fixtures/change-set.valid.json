@@ -1,0 +1,18 @@
+{
+  "schema": "PublishChangeSetRequest",
+  "valid": true,
+  "payload": {
+    "base_itinerary_version": 12,
+    "title": "Move lunch and the museum visit",
+    "operations": [
+      {
+        "action": "reschedule",
+        "logical_item_id": "wli_demo",
+        "expected_revision": 2,
+        "starts_at": "2026-09-25T07:30:00Z",
+        "ends_at": "2026-09-25T08:30:00Z"
+      }
+    ],
+    "requested_closes_at": "2026-09-24T20:00:00Z"
+  }
+}

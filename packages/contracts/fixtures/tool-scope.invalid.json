@@ -1,0 +1,9 @@
+{
+  "schema": "ToolCall",
+  "valid": false,
+  "payload": {
+    "tool": "get_trip_context",
+    "arguments": { "trip_id": "trp_someone_else" },
+    "dedupe_key": "run-demo-context-1"
+  }
+}

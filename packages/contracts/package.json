@@ -1,0 +1,21 @@
+{
+  "name": "@convia/contracts",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./generated/typescript/index.ts"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "check": "node scripts/generate.mjs --check && node scripts/validate-fixtures.mjs",
+    "test": "node scripts/validate-fixtures.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "ajv": "8.17.1"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "ToolCall",
+  "valid": true,
+  "payload": {
+    "tool": "preview_change_set",
+    "arguments": {
+      "base_itinerary_version": 12,
+      "operations": [{ "action": "remove", "logical_item_id": "wli_demo", "expected_revision": 2 }]
+    },
+    "dedupe_key": "run-demo-preview-1"
+  }
+}

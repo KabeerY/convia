@@ -1,0 +1,36 @@
+services:
+  core:
+    build:
+      context: .
+      dockerfile: backend/core-api/Dockerfile
+    ports: ["4000:4000"]
+    environment:
+      PORT: "4000"
+      CORE_DATABASE_URL: ${CORE_DATABASE_URL:-}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_JWT_ISSUER: ${SUPABASE_JWT_ISSUER:-}
+      SUPABASE_JWT_AUDIENCE: ${SUPABASE_JWT_AUDIENCE:-}
+  core-jobs:
+    build:
+      context: .
+      dockerfile: backend/core-api/Dockerfile
+    command: ["node", "backend/core-api/dist/jobs/worker.js"]
+    ports: ["4001:4001"]
+  trippy:
+    build:
+      context: .
+      dockerfile: backend/trippy-service/Dockerfile
+    ports: ["4100:4100"]
+    environment:
+      CORE_INTERNAL_URL: http://core:4000
+      TRIPPY_SERVICE_TOKEN: ${TRIPPY_SERVICE_TOKEN:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_TEXT_MODEL: ${GEMINI_TEXT_MODEL:-}
+  media:
+    build:
+      context: .
+      dockerfile: backend/media-worker/Dockerfile
+    ports: ["4200:4200"]
+    environment:
+      CORE_INTERNAL_URL: http://core:4000
+      MEDIA_SERVICE_TOKEN: ${MEDIA_SERVICE_TOKEN:-}

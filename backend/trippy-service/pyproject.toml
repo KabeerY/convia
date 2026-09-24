@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "convia-trippy-service"
+version = "0.1.0"
+requires-python = ">=3.12,<3.15"
+dependencies = ["fastapi==0.115.12", "uvicorn==0.34.2", "convia-contracts==0.1.0"]
+
+[tool.uv.sources]
+convia-contracts = { path = "../../packages/contracts", editable = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trippy_service"]

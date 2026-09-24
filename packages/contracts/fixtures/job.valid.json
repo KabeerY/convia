@@ -1,0 +1,15 @@
+{
+  "schema": "JobEnvelope",
+  "valid": true,
+  "payload": {
+    "job_id": "job_demo",
+    "queue": "trippy",
+    "type": "agent_run",
+    "state": "leased",
+    "attempt": 1,
+    "lease_generation": 1,
+    "lease_expires_at": "2026-09-24T14:01:00Z",
+    "trip_id": "trp_demo",
+    "run_id": "run_demo"
+  }
+}
