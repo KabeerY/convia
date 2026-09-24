@@ -245,9 +245,9 @@ export default function App() {
             Meet Trippy <span className="tiny-spark">✳</span>
           </a>
         </nav>
-        <button className="button nav-cta" onClick={openCreate}>
+        <a className="button nav-cta" href="/app">
           Let’s go somewhere <Icon name="diagonal" size={16} />
-        </button>
+        </a>
         <button
           className="menu-toggle"
           aria-label={menu ? "Close navigation" : "Open navigation"}
