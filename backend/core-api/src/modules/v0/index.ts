@@ -10,8 +10,10 @@ import {
 } from "./match.js";
 import {
   askTrippy,
+  askTrippyService,
   type TrippySuggestion,
   trippyConfigured,
+  trippyServiceConfigured,
 } from "./trippy.js";
 
 const id = z.string().min(1).max(128);
@@ -300,9 +302,33 @@ export const v0Module: CoreModule = {
       >("v0.chat.send", { trip_id, ...input, kind: "member" }, context);
       if (!saved.duplicate && /(?:^|\s)@trippy\b/i.test(input.body)) {
         let answer =
-          "Trippy is not configured yet. Add GEMINI_API_KEY on the server to enable itinerary suggestions.";
+          "Trippy is not configured yet. Please try again shortly.";
         let change_set_id: string | undefined;
-        if (trippyConfigured()) {
+        if (trippyServiceConfigured()) {
+          try {
+            const recent = await domain.query<Array<{
+              message_id: string;
+              display_name?: string;
+              content_kind: string;
+              body: string;
+            }>>("v0.chat.list", context, trip_id);
+            const history = recent
+              .filter((message) => message.message_id !== saved.message_id)
+              .slice(-15)
+              .map((message) => ({
+                role: message.content_kind === "agent" ? "assistant" as const : "user" as const,
+                content: message.body,
+                ...(message.content_kind === "agent" ? {} : { sender_name: message.display_name }),
+              }));
+            const query = input.body.replace(/@trippy\b/gi, "").trim();
+            answer = query
+              ? await askTrippyService(query, history, trip_id, context.actor.userId)
+              : "Ask me a question after @trippy and I'll help.";
+          } catch (error) {
+            request.log.warn(error, "Trippy service failed");
+            answer = "I couldn't answer that just now. Please try again in a moment.";
+          }
+        } else if (trippyConfigured()) {
           try {
             const [snapshot, itinerary] = await Promise.all([
               domain.query<{

@@ -25,6 +25,39 @@ const suggestion = z.object({
 });
 export type TrippySuggestion = z.infer<typeof suggestion>;
 
+export type TrippyChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  sender_name?: string;
+};
+
+export function trippyServiceConfigured() {
+  const url = process.env.TRIPPY_SERVICE_URL || "";
+  const token = process.env.TRIPPY_SERVICE_TOKEN || "";
+  return url.startsWith("https://") && token.length >= 20 && !token.startsWith("replace-");
+}
+
+export async function askTrippyService(
+  query: string,
+  context: TrippyChatMessage[],
+  tripId: string,
+  userId: string,
+): Promise<string> {
+  if (!trippyServiceConfigured()) throw new Error("TRIPPY_NOT_CONFIGURED");
+  const response = await fetch(`${process.env.TRIPPY_SERVICE_URL?.replace(/\/$/, "")}/run`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Trippy-Service-Token": process.env.TRIPPY_SERVICE_TOKEN!,
+    },
+    body: JSON.stringify({ query, context: context.slice(-15), trip_id: tripId, user_id: userId }),
+    signal: AbortSignal.timeout(25000),
+  });
+  if (!response.ok) throw new Error(`TRIPPY_SERVICE_${response.status}`);
+  const payload = z.object({ answer: z.string().trim().min(1) }).parse(await response.json());
+  return payload.answer.slice(0, 1000);
+}
+
 export function trippyConfigured() {
   const key = process.env.GEMINI_API_KEY || "";
   return key.length >= 20 && !/replace|example|paste|your[-_]?key/i.test(key);
