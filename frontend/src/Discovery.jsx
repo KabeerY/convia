@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { core, describeError } from "./lib/api";
 import { cities, cityName } from "./data/cities";
+import { parseTravelContext, travelContextPrompt } from "./lib/contextImport";
 
 const interests = ["Adventure", "Culture", "Food", "Nature", "Wellness", "Photography", "History", "Nightlife"];
 const blankPassport = { interests: [], pace: "", budget_band: "" };
@@ -15,6 +16,11 @@ export function Passport({ token, onDiscover }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [pastedContext, setPastedContext] = useState("");
+  const [importSuggestion, setImportSuggestion] = useState(null);
+  const [importError, setImportError] = useState("");
+  const [copyMessage, setCopyMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -54,24 +60,50 @@ export function Passport({ token, onDiscover }) {
     finally { setSaving(false); }
   }
 
+  async function copyPrompt() {
+    try { await navigator.clipboard.writeText(travelContextPrompt); setCopyMessage("Prompt copied. Paste it into your own AI chat."); }
+    catch { setCopyMessage("Clipboard unavailable. Select and copy the prompt below."); }
+  }
+
+  function reviewImport() {
+    setImportError("");
+    try { setImportSuggestion(parseTravelContext(pastedContext)); }
+    catch (caught) { setImportSuggestion(null); setImportError(caught.message); }
+  }
+
+  function applyImport() {
+    setForm((current) => ({
+      interests: [...new Set([...current.interests, ...importSuggestion.interests])],
+      pace: importSuggestion.pace || current.pace,
+      budget_band: importSuggestion.budget_band || current.budget_band,
+    }));
+    setPastedContext("");
+    setImportSuggestion(null);
+    setImportOpen(false);
+    setSuccess("Suggestions applied for review. They are not saved until you choose Save my Passport.");
+  }
+
   return <main className="wm-container wm-discovery-page">
     <div className="wm-page-intro"><span className="wm-kicker">A LITTLE ABOUT YOUR WAY OF GOING</span><h1>Your travel <em>Passport.</em></h1><p>Only what you choose to confirm shapes your group recommendations. Skip any part that feels too early.</p></div>
     <div className="wm-room-grid"><section className="wm-panel wm-discovery-panel">
       {loading ? <div className="wm-empty wm-empty-small">Opening your Passport…</div> : <form className="wm-form" onSubmit={save}>
+        <div className="wm-context-invite"><div><span className="wm-kicker">AN OPTIONAL SHORTCUT</span><h2>Bring what your AI already knows.</h2><p>Use a prompt in your own ChatGPT or Claude chat, then paste its travel-only answer here. Nothing connects to your account or saves raw chat text.</p></div><button type="button" className="wm-secondary" onClick={() => { if (importOpen) { setPastedContext(""); setImportSuggestion(null); setImportError(""); } setImportOpen(!importOpen); }}>{importOpen ? "Close handoff" : "Bring AI context →"}</button></div>
+        {importOpen && <div className="wm-context-panel"><p>Copy this prompt into a chat where you have discussed travel. Check the answer before applying it—AI can be wrong.</p><pre>{travelContextPrompt}</pre><button type="button" className="wm-secondary" onClick={copyPrompt}>Copy prompt</button>{copyMessage && <small role="status">{copyMessage}</small>}<label>Paste the JSON answer<textarea rows="5" maxLength={12000} value={pastedContext} onChange={(event) => { setPastedContext(event.target.value); setImportSuggestion(null); }} placeholder='{"interests":["Nature"],"pace":"balanced","budget_band":null}' /></label><button type="button" className="wm-secondary" onClick={reviewImport} disabled={!pastedContext.trim()}>Review suggestions</button>{importError && <Feedback error={importError} />}{importSuggestion && <div className="wm-context-review"><strong>Review before applying</strong><p>Interests: {importSuggestion.interests.join(", ") || "unknown"} · Pace: {importSuggestion.pace || "unknown"} · Budget: {importSuggestion.budget_band || "unknown"}</p><button type="button" className="wm-primary" onClick={applyImport}>Use these in my Passport →</button></div>}</div>}
         <div><span className="wm-kicker">01 · THE THINGS YOU LOVE</span><h2>What makes a trip yours?</h2><div className="wm-chip-grid">{interests.map((item) => <button type="button" key={item} aria-pressed={form.interests.includes(item)} className={`wm-choice-chip ${form.interests.includes(item) ? "selected" : ""}`} onClick={() => toggleInterest(item)}>{item}</button>)}</div></div>
         <div><span className="wm-kicker">02 · YOUR PACE</span><h2>How do you like the day to feel?</h2><div className="wm-choice-grid">{[["relaxed", "No rush", "Slow mornings and room to wander."], ["balanced", "A little of both", "A plan, with space for surprises."], ["active", "Keep moving", "Make the most of every day."]].map(([value, title, detail]) => <button type="button" key={value} aria-pressed={form.pace === value} className={`wm-choice-card ${form.pace === value ? "selected" : ""}`} onClick={() => setForm((current) => ({ ...current, pace: current.pace === value ? "" : value }))}><strong>{title}</strong><small>{detail}</small></button>)}</div></div>
         <div><span className="wm-kicker">03 · COMFORT ZONE</span><h2>What kind of spend feels right?</h2><div className="wm-chip-grid">{[["shoestring", "Shoestring"], ["value", "Good value"], ["mid", "Mid-range"], ["premium", "Premium"], ["luxury", "Luxury"]].map(([value, label]) => <button type="button" key={value} aria-pressed={form.budget_band === value} className={`wm-choice-chip ${form.budget_band === value ? "selected" : ""}`} onClick={() => setForm((current) => ({ ...current, budget_band: current.budget_band === value ? "" : value }))}>{label}</button>)}</div></div>
         <Feedback error={error} success={success} />
         <div className="wm-form-actions"><button className="wm-primary" disabled={saving}>{saving ? "Saving…" : "Save my Passport →"}</button><button type="button" className="wm-text-button" onClick={onDiscover}>Explore without it</button></div>
       </form>}
-    </section><aside className="wm-panel wm-side-note"><span className="wm-kicker">YOUR CHOICE, ALWAYS</span><h3>A better starting point. Not a box.</h3><p>These details help explain why a group may fit. Missing preferences stay unknown; they do not count against you.</p><p>Have a travel summary from ChatGPT or Claude? Keep it for now. The reviewed context handoff will appear here once Trippy can extract it safely.</p></aside></div>
+    </section><aside className="wm-panel wm-side-note"><span className="wm-kicker">YOUR CHOICE, ALWAYS</span><h3>A better starting point. Not a box.</h3><p>These details help explain why a group may fit. Missing preferences stay unknown; they do not count against you.</p><p>Your AI chat stays yours. Convia only saves the specific Passport fields you review and submit.</p></aside></div>
   </main>;
 }
 
 function candidateTrip(candidate) { return candidate.trip || candidate; }
 function scoreLabel(candidate) {
   const raw = candidate.match_score ?? candidate.score;
-  if (typeof raw !== "number" || !Number.isFinite(raw)) return null;
+  const coverage = candidate.coverage ?? candidate.evidence_coverage;
+  if (typeof raw !== "number" || !Number.isFinite(raw) || typeof coverage !== "number" || coverage < 0.4) return null;
   const percent = raw <= 1 ? raw * 100 : raw;
   return `${Math.round(Math.max(0, Math.min(100, percent)))}% fit`;
 }
