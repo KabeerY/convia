@@ -171,15 +171,17 @@ function AddProposal({ trip, version, onPublish, busy }) {
   const [endsAt, setEndsAt] = useState("");
   const [type, setType] = useState("poi");
   const [open, setOpen] = useState(false);
+  const [formError, setFormError] = useState("");
   async function submit(event) {
     event.preventDefault();
+    setFormError("");
     if (!Number.isInteger(version)) return;
     const start = new Date(startsAt);
     const end = new Date(endsAt);
-    if (!(end > start)) return;
+    if (!(end > start)) return setFormError("End time must be after the start time.");
     const dayIndex = Math.round((Date.UTC(start.getFullYear(), start.getMonth(), start.getDate()) - Date.parse(`${trip.start_date}T00:00:00Z`)) / 86400000) + 1;
     const finalDay = Math.round((Date.parse(`${trip.end_date}T00:00:00Z`) - Date.parse(`${trip.start_date}T00:00:00Z`)) / 86400000) + 1;
-    if (dayIndex < 1 || dayIndex > finalDay) return;
+    if (dayIndex < 1 || dayIndex > finalDay) return setFormError("Pick a time during the trip dates.");
     const completed = await onPublish({
       base_itinerary_version: version,
       title: `Add ${title.trim()}`,
@@ -192,7 +194,7 @@ function AddProposal({ trip, version, onPublish, busy }) {
     });
     if (completed) { setTitle(""); setStartsAt(""); setEndsAt(""); setOpen(false); }
   }
-  return <div className="wm-add-proposal"><button className="wm-secondary" onClick={() => setOpen(!open)}>{open ? "Close proposal" : "+ Propose an activity"}</button>{open && <form className="wm-form wm-proposal-form" onSubmit={submit}><p>Your group will vote before this joins the shared plan.</p><label>Activity<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sunset walk by the river" required /></label><div className="wm-form-grid"><label>Starts<input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} required /></label><label>Ends<input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} min={startsAt} required /></label><label>Kind<select value={type} onChange={(e) => setType(e.target.value)}><option value="poi">Place or activity</option><option value="meal">Food</option><option value="guide">Guide</option><option value="free">Free time</option></select></label></div><button className="wm-primary" disabled={busy || !Number.isInteger(version)}>{busy ? "Publishing…" : "Send to the group →"}</button>{!Number.isInteger(version) && <small>Waiting for the current itinerary version before proposals can be published.</small>}</form>}</div>;
+  return <div className="wm-add-proposal"><button className="wm-secondary" onClick={() => setOpen(!open)}>{open ? "Close proposal" : "+ Propose an activity"}</button>{open && <form className="wm-form wm-proposal-form" onSubmit={submit}><p>Your group will vote before this joins the shared plan.</p><label>Activity<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sunset walk by the river" required /></label><div className="wm-form-grid"><label>Starts<input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} required /></label><label>Ends<input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} min={startsAt} required /></label><label>Kind<select value={type} onChange={(e) => setType(e.target.value)}><option value="poi">Place or activity</option><option value="meal">Food</option><option value="guide">Guide</option><option value="free">Free time</option></select></label></div>{formError && <Notice tone="error">{formError}</Notice>}<button className="wm-primary" disabled={busy || !Number.isInteger(version)}>{busy ? "Publishing…" : "Send to the group →"}</button>{!Number.isInteger(version) && <small>Waiting for the current itinerary version before proposals can be published.</small>}</form>}</div>;
 }
 
 function TripRoom({ tripId, token, onBack }) {
