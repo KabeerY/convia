@@ -1,0 +1,1320 @@
+/* The submitted Convia deck: oat, charcoal, terracotta and a little sage. */
+:root {
+  --paper: #f6f0e7;
+  --ink: #272522;
+  --terra: #d66f4e;
+  --terra-pale: #f2d4c9;
+  --sage: #4c786e;
+  --muted: #6e675f;
+  --line: #ddd2c5;
+  --lime: #e7c1ae;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 16px;
+}
+body {
+  color: var(--ink);
+  background: var(--paper);
+}
+::selection {
+  color: var(--ink);
+  background: var(--terra-pale);
+}
+.header {
+  height: 108px;
+}
+.nav {
+  font-size: 14px;
+  gap: 31px;
+}
+.brand {
+  font-weight: 600;
+}
+.brand svg,
+.brand-dot,
+.tiny-spark,
+.title-star {
+  color: var(--terra);
+}
+.button {
+  font-size: 15px;
+  min-height: 54px;
+  padding: 16px 24px;
+}
+.nav-cta {
+  font-size: 13px;
+  min-height: 46px;
+  border-color: #baaa98;
+}
+.primary,
+.terra {
+  background: var(--terra);
+  color: #251e18;
+}
+.primary:hover,
+.terra:hover {
+  background: #e28666;
+}
+.dark {
+  background: var(--ink);
+  color: #fffcf7;
+}
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: #a94e35;
+}
+.pulse-dot {
+  background: var(--terra);
+  box-shadow: 0 0 0 5px #d66f4e12;
+}
+.hero-copy {
+  padding-top: 65px;
+  padding-bottom: 49px;
+  gap: 55px;
+}
+.hero h1 {
+  font-weight: 450;
+}
+.hero-aside {
+  min-width: 290px;
+}
+.hero-aside p {
+  font-size: 16px;
+  color: var(--muted);
+}
+.small-note {
+  font-size: 13px;
+  color: var(--muted);
+}
+.hero-bottom {
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+.hero-bottom p {
+  font-size: 14px;
+  color: var(--muted);
+}
+.hero-bottom p em {
+  font-size: 20px;
+}
+.hero-bottom > span {
+  font-size: 10px;
+}
+.manifesto-layout p {
+  font-size: 17px;
+  color: var(--muted);
+}
+.muted {
+  color: #aa9e90;
+}
+.text-link {
+  font-size: 14px;
+  border-color: #bfae9b;
+}
+.line-icon {
+  width: 47px;
+  height: 47px;
+  color: var(--sage);
+  border-color: #c8bcae;
+}
+.principles {
+  gap: 35px;
+}
+.principles h3 {
+  font-size: 17px;
+}
+.principles p {
+  font-size: 14px;
+  color: var(--muted);
+}
+.section-heading > p {
+  font-size: 16px;
+  color: var(--muted);
+}
+.filter {
+  font-size: 13px;
+  padding: 12px 19px;
+  border-color: #d7c9b8;
+}
+.filter.active {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.filter:hover:not(.active) {
+  background: #eddfcf;
+}
+.sample-label {
+  font-size: 10px;
+  color: #807264;
+}
+.trip-photo {
+  height: 335px;
+}
+.trip-photo:after {
+  background: linear-gradient(0deg, #24170dcc, transparent 70%);
+}
+.trip-type {
+  font-size: 12px;
+  background: #fffcf3ef;
+}
+.save-button {
+  width: 40px;
+  height: 40px;
+  background: #fffcf3e8;
+}
+.save-button.saved {
+  background: var(--terra-pale);
+  color: #aa4931;
+}
+.trip-location {
+  font-size: 14px;
+}
+.trip-meta {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.trip-tags {
+  margin-top: 12px;
+}
+.trip-tags span {
+  font-size: 12px;
+  color: var(--muted);
+  border-color: #dbcdbb;
+  padding: 6px 9px;
+}
+.circle-button {
+  width: 43px;
+  height: 43px;
+  border-color: #c4b5a2;
+}
+.circle-button:hover {
+  background: var(--terra-pale);
+}
+.discover-footer {
+  margin-top: 34px;
+}
+.discover-footer > span {
+  font-size: 14px;
+  color: var(--muted);
+}
+.trippy-section {
+  background: #2e2a26;
+  color: var(--paper);
+}
+.trippy-inner {
+  gap: 65px;
+  grid-template-columns: 1fr 1.18fr;
+  padding-top: 100px;
+  padding-bottom: 100px;
+}
+.trippy-copy .eyebrow {
+  color: #d9b49b;
+}
+.trippy-star {
+  color: #e9ab8e;
+}
+.trippy-copy h2 em {
+  color: #ebbd9e;
+}
+.trippy-copy > p {
+  font-size: 16px;
+  max-width: 370px;
+  color: #c4b8ab;
+}
+.trippy-copy .trippy-quiet {
+  color: #eee2d4;
+  font-size: 15px;
+}
+.trippy-copy .button {
+  color: #251e18;
+}
+.trippy-fine {
+  font-size: 10px;
+  color: #bbac9a;
+  line-height: 1.7;
+}
+.demo-scene {
+  max-width: 490px;
+}
+.demo-kicker {
+  font-size: 11px;
+  color: #d6c0ad;
+}
+.chat-window {
+  background: #fffcf7;
+}
+.chat-header {
+  padding: 20px;
+  border-color: var(--line);
+}
+.group-icon {
+  width: 42px;
+  height: 42px;
+  background: #f2d4c9;
+}
+.chat-header strong {
+  font-size: 15px;
+}
+.chat-header div > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.chat-body {
+  padding: 24px 20px 14px;
+}
+.message {
+  gap: 10px;
+  margin-bottom: 23px;
+}
+.avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+}
+.green {
+  background: var(--terra);
+  color: #2b211b;
+  font-size: 24px;
+}
+.sender {
+  font-size: 12px;
+}
+.sender small {
+  font-size: 10px;
+  color: #807366;
+}
+.message p {
+  font-size: 13px;
+  max-width: 320px;
+}
+.message:not(.agent):not(.own) p {
+  background: #f1ebe2;
+}
+.own p {
+  background: #f2dacf;
+}
+.own b {
+  color: #9c4936;
+}
+.sent-label {
+  font-size: 10px;
+  color: #7e7063;
+}
+.agent-label {
+  font-size: 9px;
+  background: #f0dfd2;
+}
+.proposal {
+  background: #f6eee2;
+  border-color: #d8c4ad;
+  padding: 16px;
+}
+.proposal-time {
+  font-size: 10px;
+  color: #836343;
+}
+.proposal strong {
+  font-size: 17px;
+}
+.proposal-sub {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #766755;
+}
+.vote-avatars > span {
+  width: 26px;
+  height: 26px;
+  font-size: 9px;
+  border-color: #f6eee2;
+}
+.vote-avatars > span:nth-child(2) {
+  background: #dce8e2;
+}
+.vote-avatars > span:nth-child(3) {
+  background: #e8ab8b;
+}
+.vote-avatars small {
+  font-size: 11px;
+  color: #766755;
+}
+.vote-button {
+  font-size: 11px;
+  background: var(--ink);
+  min-height: 42px;
+  line-height: 1.4;
+}
+.committed {
+  border-color: #88a494;
+}
+.committed .vote-button {
+  background: #dce8e2;
+  color: #31564f;
+}
+.demo-status {
+  font-size: 10px;
+  color: #736957;
+  min-height: 46px;
+  line-height: 1.5;
+  border-color: var(--line);
+}
+.status-dot {
+  background: #bca286;
+}
+.committed-dot {
+  background: var(--sage);
+}
+.floating-note {
+  background: #e6b996;
+  color: #50331e;
+  right: -25px;
+  bottom: 17px;
+}
+.floating-note span {
+  font-size: 21px;
+}
+.floating-note.confirmed {
+  bottom: -16px;
+}
+.passport-book {
+  background: #a6583e;
+  color: #f1d7b0;
+  border-color: #9c5039;
+  box-shadow:
+    inset 8px 0 0 #88432f,
+    inset 10px 0 0 #c88361,
+    7px 10px 0 #d7bf9e,
+    12px 19px 40px #43271325;
+}
+.passport-book-top {
+  font-size: 10px;
+}
+.passport-emblem > span {
+  font-size: 10px;
+}
+.passport-bottom {
+  font-size: 8px;
+}
+.passport-sticker {
+  font-size: 11px;
+  background: #e9dfca;
+  border-color: #ac9678;
+}
+.orbit {
+  border-color: #d8c8b5;
+}
+.orbit-star {
+  color: var(--terra);
+}
+.passport-copy > p {
+  font-size: 16px;
+  color: var(--muted);
+}
+.passport-options {
+  font-size: 14px;
+  gap: 13px;
+}
+.passport-options svg {
+  color: var(--sage);
+}
+.passport-copy > small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.closing {
+  background: #efdece;
+}
+.closing:before,
+.closing:after {
+  border-color: #b68a6944;
+  box-shadow:
+    0 0 0 20px #b68a690a,
+    0 0 0 40px #b68a6909;
+}
+.closing h2 > span {
+  color: var(--terra);
+}
+.closing .eyebrow {
+  font-size: 12px;
+}
+.closing-coordinates {
+  font-size: 10px;
+  color: #7f6855;
+}
+footer > span,
+footer > div,
+footer button {
+  font-size: 13px;
+  color: var(--muted);
+}
+footer .footer-note {
+  font-size: 10px;
+}
+.modal-backdrop {
+  background: #2b211bd0;
+}
+.modal-content p {
+  font-size: 16px;
+  color: var(--muted);
+}
+.modal-content .eyebrow {
+  font-size: 11px;
+}
+.modal label {
+  font-size: 14px;
+}
+.modal input,
+.modal select {
+  font-size: 16px;
+  border-color: #cdbda9;
+}
+.optional,
+.modal p.form-note {
+  font-size: 12px;
+}
+.sample-itinerary li {
+  font-size: 14px;
+}
+.sample-itinerary li > span {
+  color: var(--terra);
+}
+.vibe-options button {
+  background: #eee1d3;
+  min-height: 80px;
+}
+.vibe-options strong {
+  font-size: 16px;
+}
+.vibe-options small {
+  font-size: 13px;
+  color: var(--muted);
+}
+.draft-success {
+  background: #e8ded0;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline-color: #aa5037;
+}
+.reveal {
+  transform: translateY(36px);
+  transition-duration: 900ms;
+}
+
+/* A three-part, scroll-scrubbed scene. Each door rotates about its outer hinge. */
+.temple-journey {
+  height: 250svh;
+  position: relative;
+}
+.journey-sticky {
+  --door-angle: 8deg;
+  --door-light: 0.78;
+  --intro-opacity: 1;
+  --arrival-opacity: 0;
+  --camera-scale: 1;
+  --camera-y: 0%;
+  --light-opacity: 0.08;
+  --caption-y: 24px;
+  --progress: 0%;
+  position: sticky;
+  top: 18px;
+  height: calc(100svh - 36px);
+  min-height: 540px;
+  max-height: 940px;
+  color: #fff7e9;
+}
+.journey-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  border-radius: 12px;
+  background: #2d2118;
+  isolation: isolate;
+}
+.temple-camera {
+  position: absolute;
+  inset: 0;
+  transform: scale(var(--camera-scale)) translateY(var(--camera-y));
+  will-change: transform;
+}
+.temple-camera .temple-image {
+  inset: -2%;
+  transform: none;
+  background-position: center 50%;
+}
+.temple-atmosphere {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    #20150c38 0%,
+    transparent 28%,
+    #1c160f22 56%,
+    #21160ded 100%
+  );
+}
+.sunlight {
+  position: absolute;
+  inset: -30%;
+  background: conic-gradient(
+    from 210deg at 75% 5%,
+    transparent 0deg,
+    #ffda9b99 13deg,
+    transparent 22deg,
+    #ffd19255 35deg,
+    transparent 46deg
+  );
+  opacity: var(--light-opacity);
+  mix-blend-mode: screen;
+  transform: rotate(calc(var(--journey) * -6deg));
+  pointer-events: none;
+}
+.doorway {
+  position: absolute;
+  inset: 0;
+  perspective: 1600px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+  z-index: 2;
+}
+.door-leaf {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  top: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.door-leaf-left {
+  left: 0;
+  transform-origin: left center;
+  transform: rotateY(calc(-1 * var(--door-angle)));
+}
+.door-leaf-right {
+  right: 0;
+  transform-origin: right center;
+  transform: rotateY(var(--door-angle));
+}
+.door-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #351c1410 0px,
+      #351c1410 3px,
+      #b8814d0a 4px,
+      transparent 6px
+    ),
+    linear-gradient(
+      90deg,
+      #251710,
+      #6b462b 16%,
+      #4e301e 42%,
+      #5d3b24 75%,
+      #24170f
+    );
+  border: 7px solid #422819;
+  box-shadow:
+    inset 0 0 0 2px #ac7d4955,
+    inset 0 0 0 15px #20160e33,
+    inset 0 0 60px #100c08aa,
+    0 0 30px #120b0780;
+  color: #c7975e;
+  filter: brightness(var(--door-light));
+}
+.door-face:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    #f6d39216,
+    transparent 25%,
+    #10090320 70%
+  );
+  pointer-events: none;
+}
+.door-carving {
+  position: absolute;
+  inset: 20px 7%;
+  width: 86%;
+  height: calc(100% - 40px);
+  filter: drop-shadow(1px 2px 1px #1d1008);
+}
+.carved-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.door-thickness {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  background: repeating-linear-gradient(
+    0deg,
+    #3c2619,
+    #654025 7px,
+    #3c2619 10px
+  );
+  transform-style: preserve-3d;
+}
+.door-leaf-left .door-thickness {
+  right: 0;
+  transform: rotateY(90deg);
+  transform-origin: right;
+}
+.door-leaf-right .door-thickness {
+  left: 0;
+  transform: rotateY(-90deg);
+  transform-origin: left;
+}
+.door-pull {
+  position: absolute;
+  width: 29px;
+  height: 60px;
+  top: 52%;
+  border: 5px solid #b48b50;
+  border-radius: 50%;
+  box-shadow:
+    3px 6px 6px #0009,
+    inset 1px 2px 2px #0007;
+  background: linear-gradient(90deg, #7b522844, transparent);
+}
+.door-leaf-left .door-pull {
+  right: 23px;
+}
+.door-leaf-right .door-pull {
+  left: 23px;
+}
+.door-stud {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #c9a36b, #704a28 60%);
+  box-shadow: 2px 3px 3px #0007;
+}
+.door-leaf-left .door-stud {
+  right: 32px;
+}
+.door-leaf-right .door-stud {
+  left: 32px;
+}
+.stud-top {
+  top: 17%;
+}
+.stud-bottom {
+  bottom: 17%;
+}
+.gateway-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #140d0a66,
+    transparent 25%,
+    transparent 70%,
+    #140d0a99
+  );
+  box-shadow: inset 0 0 75px #190f0866;
+}
+.journey-top {
+  position: absolute;
+  z-index: 5;
+  top: 33px;
+  left: 36px;
+  right: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+}
+.journey-top > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.journey-top i {
+  height: 5px;
+  width: 5px;
+  border-radius: 50%;
+  background: #edc599;
+  box-shadow: 0 0 14px #edc599;
+}
+.journey-top a {
+  padding: 10px 0;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #fff7e966;
+}
+.journey-top a:hover {
+  color: #f0bc92;
+}
+.journey-top a > span {
+  margin-left: 9px;
+}
+.door-invitation {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  text-align: center;
+  opacity: var(--intro-opacity);
+  pointer-events: none;
+  text-shadow: 0 3px 35px #000a;
+}
+.journey-eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.door-invitation h2 {
+  font-size: clamp(44px, 5.2vw, 78px);
+  font-weight: 400;
+  letter-spacing: -2.5px;
+  line-height: 1.12;
+  margin-top: 25px;
+}
+.door-invitation h2 em {
+  font-size: 1.2em;
+  color: #f1d4ae;
+}
+.invitation-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 17px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-top: 38px;
+}
+.invitation-scroll > span {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border: 1px solid #f1d4ae77;
+  border-radius: 50%;
+  font-size: 22px;
+  animation: nudge 2.6s ease-in-out infinite;
+}
+.journey-arrival {
+  position: absolute;
+  left: 6%;
+  bottom: 115px;
+  z-index: 4;
+  opacity: var(--arrival-opacity);
+  transform: translateY(var(--caption-y));
+  pointer-events: none;
+}
+.journey-arrival h2 {
+  font-size: clamp(36px, 4.4vw, 66px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  font-weight: 400;
+  margin: 19px 0;
+}
+.journey-arrival h2 em {
+  font-size: 1.22em;
+  color: #f4d6b3;
+}
+.journey-arrival p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #e4d5c0;
+}
+.journey-footer {
+  position: absolute;
+  z-index: 5;
+  left: 36px;
+  right: 36px;
+  bottom: 41px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+.chapter-label {
+  font-size: 13px;
+  min-width: 210px;
+}
+.chapter-label b {
+  font-size: 11px;
+  font-weight: 450;
+  color: #cda982;
+  margin-right: 10px;
+}
+.journey-progress {
+  height: 1px;
+  flex: 1;
+  background: #ffffff30;
+}
+.journey-progress > span {
+  height: 2px;
+  display: block;
+  width: var(--progress);
+  background: #dca477;
+}
+.journey-coordinates {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.journey-art-note {
+  position: absolute;
+  bottom: 12px;
+  right: 36px;
+  z-index: 5;
+  color: #d2bea888;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+@supports (animation-timeline: view()) {
+  .passport-book {
+    animation: passport-arrive linear both;
+    animation-timeline: view();
+    animation-range: entry 0% exit 100%;
+  }
+  .orbit-star {
+    animation: orbit-turn linear both;
+    animation-timeline: view();
+  }
+  @keyframes passport-arrive {
+    from {
+      transform: translateY(35px) rotate(-17deg);
+    }
+    to {
+      transform: translateY(-25px) rotate(-5deg);
+    }
+  }
+  @keyframes orbit-turn {
+    from {
+      transform: rotate(-35deg);
+    }
+    to {
+      transform: rotate(70deg);
+    }
+  }
+}
+@media (max-width: 1100px) {
+  .hero-copy {
+    gap: 38px;
+  }
+  .hero h1 {
+    font-size: 58px;
+  }
+  .hero-aside {
+    min-width: 240px;
+  }
+  .hero-aside p {
+    font-size: 15px;
+  }
+  .nav {
+    font-size: 12px;
+    gap: 18px;
+  }
+  .nav-cta {
+    font-size: 12px;
+    padding: 12px 16px;
+  }
+  .trippy-inner {
+    gap: 40px;
+    padding-left: 6%;
+    padding-right: 6%;
+  }
+  .chat-body {
+    padding: 20px 13px 12px;
+  }
+  .chat-header {
+    padding: 17px 13px;
+  }
+  .proposal {
+    padding: 12px;
+  }
+  .floating-note {
+    right: -10px;
+  }
+  .principles {
+    gap: 20px;
+  }
+  .principles > div {
+    gap: 10px;
+  }
+  .principles h3 {
+    font-size: 16px;
+  }
+  .principles p {
+    font-size: 13px;
+  }
+}
+@media (max-width: 760px) {
+  .header {
+    height: 83px;
+  }
+  .nav {
+    top: 82px;
+    font-size: 16px;
+  }
+  .nav-cta {
+    font-size: 11px;
+  }
+  .hero-copy {
+    padding-top: 36px;
+    padding-bottom: 32px;
+  }
+  .hero h1 {
+    font-size: clamp(37px, 8.5vw, 62px);
+  }
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+  }
+  .title-star {
+    font-size: 25px;
+    margin-left: 5px;
+  }
+  .hero-aside {
+    grid-template-columns: 1fr;
+    margin-top: 26px;
+    gap: 18px;
+  }
+  .hero-aside p {
+    font-size: 16px;
+  }
+  .hero-aside .button {
+    font-size: 14px;
+    justify-self: start;
+    padding: 15px 21px;
+    min-height: 49px;
+  }
+  .small-note {
+    font-size: 12px;
+    margin-top: -7px;
+  }
+  .hero-bottom p {
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .hero-bottom > span {
+    font-size: 9px;
+    line-height: 1.8;
+  }
+  .manifesto-layout p {
+    font-size: 16px;
+  }
+  .principles {
+    gap: 27px;
+  }
+  .principles > div {
+    gap: 16px;
+  }
+  .principles h3 {
+    font-size: 17px;
+  }
+  .principles p {
+    font-size: 14px;
+  }
+  .section-heading > p {
+    font-size: 15px;
+  }
+  .filter {
+    font-size: 12px;
+    padding: 11px 13px;
+  }
+  .sample-label {
+    font-size: 10px;
+  }
+  .trip-photo {
+    height: 350px;
+  }
+  .trip-location,
+  .trip-meta {
+    font-size: 14px;
+  }
+  .trip-tags span {
+    font-size: 12px;
+  }
+  .discover-footer > span {
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .discover-footer .text-link,
+  .text-link {
+    font-size: 13px;
+  }
+  .trippy-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 65px 6% 80px;
+    gap: 45px;
+  }
+  .trippy-copy > p {
+    font-size: 16px;
+  }
+  .trippy-copy .button {
+    font-size: 14px;
+  }
+  .trippy-fine {
+    font-size: 9px;
+  }
+  .demo-scene {
+    width: 100%;
+    min-width: 0;
+    max-width: 420px;
+    padding: 0;
+  }
+  .demo-kicker {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  .chat-header strong {
+    font-size: 13px;
+  }
+  .chat-header div > span {
+    font-size: 10px;
+  }
+  .message p {
+    font-size: 12px;
+  }
+  .message > div {
+    min-width: 0;
+  }
+  .avatar {
+    width: 25px;
+    height: 25px;
+  }
+  .sender {
+    font-size: 11px;
+  }
+  .agent-label {
+    font-size: 8px;
+  }
+  .proposal strong {
+    font-size: 15px;
+  }
+  .proposal-sub {
+    font-size: 11px;
+  }
+  .vote-button {
+    font-size: 10px;
+  }
+  .floating-note {
+    right: 2px;
+    bottom: -17px;
+  }
+  .floating-note span {
+    font-size: 18px;
+  }
+  .passport-copy .eyebrow {
+    font-size: 9px;
+    line-height: 1.8;
+  }
+  .passport-copy > p {
+    font-size: 16px;
+  }
+  .passport-sticker {
+    font-size: 9px;
+  }
+  .passport-copy > small {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .closing .eyebrow {
+    font-size: 9px;
+    line-height: 1.8;
+  }
+  .closing .button {
+    font-size: 13px;
+  }
+  .closing-coordinates {
+    font-size: 8px;
+    line-height: 1.8;
+  }
+  footer > span {
+    font-size: 11px;
+    max-width: 145px;
+  }
+  footer > div,
+  footer button {
+    font-size: 12px;
+  }
+  .modal-content .eyebrow {
+    font-size: 10px;
+    line-height: 1.7;
+  }
+  .modal-content p {
+    font-size: 15px;
+  }
+  .modal-content .button {
+    font-size: 13px;
+  }
+  .sample-itinerary li {
+    font-size: 13px;
+  }
+  .temple-journey {
+    height: 240svh;
+  }
+  .journey-sticky {
+    top: 18px;
+    min-height: 490px;
+    height: calc(100svh - 36px);
+  }
+  .journey-viewport {
+    border-radius: 7px;
+  }
+  .temple-camera .temple-image {
+    inset: 0 -28%;
+    background-position: 50% center;
+  }
+  .doorway {
+    perspective: 1000px;
+  }
+  .door-face {
+    border-width: 4px;
+  }
+  .door-carving {
+    inset: 30px 1%;
+    width: 98%;
+    height: calc(100% - 60px);
+  }
+  .door-pull {
+    width: 19px;
+    height: 41px;
+    border-width: 3px;
+    top: 57%;
+  }
+  .door-leaf-left .door-pull {
+    right: 9px;
+  }
+  .door-leaf-right .door-pull {
+    left: 9px;
+  }
+  .door-leaf-left .door-stud {
+    right: 12px;
+  }
+  .door-leaf-right .door-stud {
+    left: 12px;
+  }
+  .door-thickness {
+    width: 14px;
+  }
+  .journey-top {
+    top: 20px;
+    left: 19px;
+    right: 19px;
+    font-size: 8px;
+    letter-spacing: 0.8px;
+    gap: 8px;
+  }
+  .journey-top > span {
+    gap: 6px;
+  }
+  .journey-top a {
+    font-size: 10px;
+  }
+  .journey-top a > span {
+    margin-left: 3px;
+  }
+  .door-invitation {
+    left: 4%;
+    right: 4%;
+  }
+  .journey-eyebrow {
+    font-size: 9px;
+    letter-spacing: 1.2px;
+  }
+  .door-invitation h2 {
+    font-size: clamp(32px, 9vw, 53px);
+    letter-spacing: -1.4px;
+    margin-top: 22px;
+  }
+  .invitation-scroll {
+    font-size: 9px;
+    margin-top: 31px;
+  }
+  .journey-arrival {
+    bottom: 100px;
+    left: 23px;
+    right: 20px;
+  }
+  .journey-arrival h2 {
+    font-size: 37px;
+  }
+  .journey-arrival p {
+    font-size: 14px;
+  }
+  .journey-footer {
+    left: 20px;
+    right: 20px;
+    bottom: 36px;
+    gap: 17px;
+  }
+  .chapter-label {
+    min-width: auto;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .chapter-label b {
+    font-size: 10px;
+    margin-right: 6px;
+  }
+  .journey-coordinates {
+    display: none;
+  }
+  .journey-art-note {
+    font-size: 7px;
+    right: 20px;
+  }
+}
+@media (max-width: 480px) {
+  .header .nav-cta {
+    display: none;
+  }
+  .menu-toggle {
+    margin-left: auto;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .temple-journey {
+    height: auto;
+  }
+  .journey-sticky {
+    position: relative;
+    top: 0;
+    height: 620px;
+    min-height: 0;
+  }
+  .doorway,
+  .door-invitation,
+  .sunlight,
+  .journey-progress,
+  .journey-top a {
+    display: none;
+  }
+  .journey-arrival {
+    opacity: 1;
+    transform: none;
+  }
+  .temple-camera,
+  .passport-book,
+  .orbit-star {
+    animation: none;
+    transform: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
