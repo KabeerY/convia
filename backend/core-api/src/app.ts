@@ -1,3 +1,4 @@
+import cors from "@fastify/cors";
 import Fastify from "fastify";
 import type { CoreConfig } from "./config.js";
 import { readiness } from "./config.js";
@@ -7,6 +8,20 @@ import { registerModules } from "./modules/registry.js";
 
 export async function buildApp(config: CoreConfig, domain: DomainPort) {
   const app = Fastify({ logger: true });
+  const origins = [
+    ...(config.ALLOWED_ORIGINS ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+    ...(config.APP_ORIGIN ? [config.APP_ORIGIN.trim()] : []),
+  ].filter(Boolean);
+  const deduped = [...new Set(origins)];
+  await app.register(cors, {
+    origin: deduped.length > 0 ? deduped : ["http://localhost:4175"],
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Authorization", "Content-Type", "Idempotency-Key"],
+    credentials: true,
+  });
   app.get("/health", async () => ({ status: "up", service: "core-api" }));
   app.get("/ready", async (_request, reply) => {
     const state = readiness(config);

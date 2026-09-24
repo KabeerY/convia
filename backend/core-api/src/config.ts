@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const configSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  APP_ORIGIN: z.string().optional(),
+  ALLOWED_ORIGINS: z.string().optional(),
   CORE_DATABASE_URL: z.string().optional(),
   SUPABASE_URL: z.preprocess(
     (value) => (value === "" ? undefined : value),

@@ -22,8 +22,12 @@ test("Core skeleton reports honest process and API status", async () => {
     const ready = await app.inject("/ready");
     assert.equal(ready.statusCode, 503);
     const trip = await app.inject("/v1/trips/demo");
-    assert.equal(trip.statusCode, 503);
-    assert.equal(trip.json().error.code, "MODULE_UNAVAILABLE");
+    // Trips routes are implemented, so this must not report MODULE_UNAVAILABLE
+    // (the stub domain fails the request, but the route exists).
+    assert.notEqual(trip.json().error?.code, "MODULE_UNAVAILABLE");
+    const chat = await app.inject("/v1/conversations/demo");
+    assert.equal(chat.statusCode, 503);
+    assert.equal(chat.json().error.code, "MODULE_UNAVAILABLE");
   } finally {
     await app.close();
   }

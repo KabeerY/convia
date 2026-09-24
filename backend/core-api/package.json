@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@convia/contracts": "workspace:*",
+    "@fastify/cors": "10.0.1",
     "@supabase/supabase-js": "2.117.1",
     "decimal.js": "10.6.0",
     "fastify": "5.6.1",

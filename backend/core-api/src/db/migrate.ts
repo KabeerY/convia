@@ -18,6 +18,14 @@ const migrations = [
     name: "0004_v0_decisions",
     path: resolve(dataRoot, "migrations/0004_v0_decisions.sql"),
   },
+  {
+    name: "0005_v0_pgcrypto_path",
+    path: resolve(dataRoot, "migrations/0005_v0_pgcrypto_path.sql"),
+  },
+  {
+    name: "0006_v0_extensions_access",
+    path: resolve(dataRoot, "migrations/0006_v0_extensions_access.sql"),
+  },
 ];
 
 async function main() {
