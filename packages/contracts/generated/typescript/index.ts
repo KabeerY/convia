@@ -69,6 +69,27 @@ export type PublishChangeSetRequest = {
   "requested_closes_at"?: Instant;
 };
 
+export type V0ActivityItem = {
+  "title": string;
+  "item_type": "hotel" | "flight" | "poi" | "package" | "guide" | "transfer" | "meal" | "free";
+  "day_index": number;
+  "starts_at": Instant;
+  "ends_at": Instant;
+};
+
+export type V0AddOperation = {
+  "action": "add";
+  "new_item": V0ActivityItem;
+  "cost_basis"?: "unknown";
+};
+
+export type PublishV0ChangeSetRequest = {
+  "base_itinerary_version": number;
+  "title": string;
+  "operations": Array<V0AddOperation>;
+  "requested_closes_at"?: Instant;
+};
+
 export type BallotRequest = {
   "vote": "yes" | "no";
   "expected_revision": number;
@@ -78,14 +99,22 @@ export type ChangeSetState = "open" | "committed" | "rejected" | "expired" | "st
 
 export type DecisionSummary = {
   "change_set_id": Id;
+  "trip_id": Id;
+  "title": string;
   "state": ChangeSetState;
+  "status": ChangeSetState;
+  "revision": number;
   "base_itinerary_version": number;
   "eligible_count": number;
   "threshold": number;
+  "approval_threshold": number;
   "yes_count": number;
   "no_count": number;
+  "actor_ballot": "yes" | "no" | null;
   "closes_at": Instant;
-  "committed_itinerary_version"?: number;
+  "created_at"?: Instant;
+  "operations": Array<ChangeOperation>;
+  "committed_itinerary_version": number | null;
 };
 
 export type EventEnvelope = {

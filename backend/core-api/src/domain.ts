@@ -34,6 +34,8 @@ const commandNames = new Set([
   "member.restore",
   "member.delegate",
   "ownership.transfer",
+  "decision.publish",
+  "decision.vote",
 ]);
 const queryNames = new Set([
   "trip.list",
@@ -43,6 +45,11 @@ const queryNames = new Set([
   "trip.join_requests",
   "conversation.list",
   "media.list",
+  "decision.list",
+  "decision.read",
+  "itinerary.read",
+  "history.list",
+  "item.read",
 ]);
 
 function translate(error: unknown): never {
@@ -165,7 +172,9 @@ export function createDomain(
     if (!commandNames.has(name)) throw new DomainError("UNKNOWN_COMMAND", 400);
     try {
       const result = await client.query<{ value: TOutput }>(
-        "SELECT wm_trip_command($1,$2,$3::jsonb) AS value",
+        name.startsWith("decision.")
+          ? "SELECT wm_decision_command($1,$2,$3::jsonb) AS value"
+          : "SELECT wm_trip_command($1,$2,$3::jsonb) AS value",
         [actor.userId, name, JSON.stringify(input)],
       );
       return result.rows[0].value;
@@ -188,7 +197,12 @@ export function createDomain(
       throw new DomainError("UNKNOWN_QUERY", 400);
     try {
       const result = await client.query<{ value: TOutput }>(
-        "SELECT wm_trip_query($1,$2,$3) AS value",
+        name.startsWith("decision.") ||
+          name === "itinerary.read" ||
+          name === "history.list" ||
+          name === "item.read"
+          ? "SELECT wm_decision_query($1,$2,$3) AS value"
+          : "SELECT wm_trip_query($1,$2,$3) AS value",
         [actor.userId, name, resourceId],
       );
       return result.rows[0].value;

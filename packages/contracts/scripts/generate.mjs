@@ -123,16 +123,42 @@ const paths = {
         schema: { $ref: "#/components/schemas/Id" },
       },
     ],
-    post: {
-      summary: "Publish a change set (PR-05)",
-      requestBody: {
-        content: {
-          "application/json": {
-            schema: { $ref: "#/components/schemas/PublishChangeSetRequest" },
+    get: {
+      summary:
+        "List a member's trip decisions with actor ballots and current revisions",
+      responses: {
+        200: {
+          description: "Decision summaries",
+          content: {
+            "application/json": {
+              schema: {
+                type: "array",
+                items: { $ref: "#/components/schemas/DecisionSummary" },
+              },
+            },
           },
         },
       },
-      responses: { 503: { description: "Not implemented in PR-01" } },
+    },
+    post: {
+      summary: "Publish one add-activity change set (V0)",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/PublishV0ChangeSetRequest" },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: "Published decision",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/DecisionSummary" },
+            },
+          },
+        },
+      },
     },
   },
   "/v1/change-sets/{change_set_id}/votes": {
@@ -145,7 +171,7 @@ const paths = {
       },
     ],
     post: {
-      summary: "Cast ballot (PR-05)",
+      summary: "Cast ballot using the current decision revision",
       requestBody: {
         content: {
           "application/json": {
@@ -153,7 +179,56 @@ const paths = {
           },
         },
       },
-      responses: { 503: { description: "Not implemented in PR-01" } },
+      responses: {
+        200: {
+          description: "Updated decision",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/DecisionSummary" },
+            },
+          },
+        },
+        409: { description: "Revision conflict or closed decision" },
+      },
+    },
+  },
+  "/v1/change-sets/{change_set_id}": {
+    parameters: [
+      {
+        name: "change_set_id",
+        in: "path",
+        required: true,
+        schema: { $ref: "#/components/schemas/Id" },
+      },
+    ],
+    get: {
+      summary: "Read an authorized decision",
+      responses: {
+        200: {
+          description: "Decision summary",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/DecisionSummary" },
+            },
+          },
+        },
+      },
+    },
+  },
+  "/v1/itinerary-items/{logical_item_id}": {
+    parameters: [
+      {
+        name: "logical_item_id",
+        in: "path",
+        required: true,
+        schema: { $ref: "#/components/schemas/Id" },
+      },
+    ],
+    patch: {
+      summary: "Direct item edits are refused; propose a change",
+      responses: {
+        409: { description: "DECISION_LOCKED or PROPOSAL_REQUIRED" },
+      },
     },
   },
 };
@@ -161,9 +236,9 @@ const openapi = {
   openapi: "3.1.0",
   info: {
     title: "Convia transport contracts",
-    version: "0.1.0",
+    version: "0.2.0",
     description:
-      "PR-01 contract source; listed domain operations are planned, not implemented.",
+      "Shared domain and V0 decision API contracts. Successful decision responses are raw JSON resources.",
   },
   paths,
   components: { schemas: definitions },

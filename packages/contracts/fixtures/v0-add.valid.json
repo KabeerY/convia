@@ -1,0 +1,20 @@
+{
+  "schema": "PublishV0ChangeSetRequest",
+  "valid": true,
+  "payload": {
+    "base_itinerary_version": 1,
+    "title": "Add a morning walk",
+    "operations": [{
+      "action": "add",
+      "new_item": {
+        "title": "Morning walk",
+        "item_type": "poi",
+        "day_index": 1,
+        "starts_at": "2026-11-01T10:00:00Z",
+        "ends_at": "2026-11-01T11:00:00Z"
+      },
+      "cost_basis": "unknown"
+    }],
+    "requested_closes_at": "2026-09-25T10:00:00Z"
+  }
+}
