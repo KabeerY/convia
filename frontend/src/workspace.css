@@ -8,11 +8,11 @@
 }
 .workspace * { box-sizing: border-box; }
 .wm-container { width: min(1220px, calc(100% - 48px)); margin-inline: auto; }
-.wm-kicker { color: #a95239; font-size: 11px; font-weight: 750; letter-spacing: .18em; text-transform: uppercase; }
-.wm-brand { display: inline-flex; align-items: center; color: #272522; font-size: 30px; font-weight: 700; letter-spacing: -.09em; line-height: 1; }
+.wm-kicker { color: #a95239; font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.wm-brand { display: inline-flex; align-items: center; gap: 8px; color: #272522; font-size: 34px; font-weight: 700; letter-spacing: -2px; line-height: 1; }
 .wm-brand-light { color: #fff9f1; }
-.wm-brand-mark { display: inline-grid; place-items: center; width: 39px; height: 39px; margin-right: 9px; border: 2px solid currentColor; border-radius: 50%; color: #d66f4e; font-family: "Instrument Serif", Georgia, serif; font-size: 39px; font-weight: 400; transform: rotate(-32deg); }
-.wm-brand-dot { color: #d66f4e; }
+.wm-brand svg { width: 34px; height: 34px; color: #d66f4e; }
+.wm-brand-register { align-self: flex-start; margin: 2px 0 0 -6px; color: #d66f4e; font-size: 11px; letter-spacing: 0; }
 .wm-boot { display: grid; place-items: center; font-family: "Instrument Serif", Georgia, serif; font-size: 30px; }
 .wm-primary,
 .wm-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 12px 21px; border-radius: 999px; font-size: 14px; font-weight: 700; transition: transform .2s, background .2s; }
@@ -21,16 +21,15 @@
 .wm-primary:hover:not(:disabled), .wm-secondary:hover:not(:disabled) { transform: translateY(-2px); }
 .wm-primary:disabled, .wm-secondary:disabled { opacity: .5; cursor: default; }
 .wm-text-button,
-.wm-back-link,
-.wm-refresh { padding: 0; border: 0; background: none; font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.wm-back-link { padding: 0; border: 0; background: none; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 .wm-back-button { margin: 32px 0 24px; }
-.wm-notice { padding: 13px 16px; border: 1px solid #dacbb9; border-radius: 14px; background: #fffaf2; color: #534d45; font-size: 13px; line-height: 1.55; }
+.wm-notice { padding: 13px 16px; border: 1px solid #dacbb9; border-radius: 14px; background: #fffaf2; color: #534d45; font-size: 14px; line-height: 1.55; }
 .wm-notice-error { border-color: #dba999; background: #fff0e9; color: #8a352a; }
 .wm-notice-success { border-color: #b7cfc0; background: #eef7ef; color: #245e4d; }
 .wm-retry-notice { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
 .wm-retry-notice .wm-notice { flex: 1; min-width: 220px; }
 .wm-form { display: grid; gap: 18px; }
-.wm-form label { display: grid; gap: 8px; font-size: 12px; font-weight: 750; letter-spacing: .03em; }
+.wm-form label { display: grid; gap: 8px; font-size: 14px; font-weight: 750; letter-spacing: .01em; }
 .wm-form input,
 .wm-form select,
 .wm-form textarea { width: 100%; min-height: 49px; padding: 12px 14px; border: 1px solid #cdbfb0; border-radius: 11px; background: #fffdf9; color: #272522; font-size: 14px; font-weight: 500; outline: 0; }
@@ -54,10 +53,10 @@
 .wm-auth-card .wm-text-button { margin-top: 28px; }
 .wm-app-header { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #dfd3c7; background: #f6f0e7f2; backdrop-filter: blur(18px); }
 .wm-app-header-inner { display: flex; align-items: center; gap: 40px; min-height: 76px; }
-.wm-app-header nav { display: flex; align-items: center; gap: 25px; margin-right: auto; font-size: 13px; font-weight: 700; }
+.wm-app-header nav { display: flex; align-items: center; gap: 25px; margin-right: auto; font-size: 14px; font-weight: 700; }
 .wm-app-header nav button { padding: 0; background: none; }
 .wm-app-header nav a:hover, .wm-app-header nav button:hover { color: #ae4e32; }
-.wm-account { display: flex; align-items: center; gap: 14px; font-size: 12px; }
+.wm-account { display: flex; align-items: center; gap: 14px; font-size: 13px; }
 .wm-account span { max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #756b61; }
 .wm-account button { padding: 9px 13px; border: 1px solid #d2c4b5; border-radius: 999px; background: transparent; font-weight: 700; }
 .wm-dashboard { padding-top: 74px; padding-bottom: 120px; }
@@ -69,7 +68,7 @@
 .wm-dashboard-actions { display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 9px; }
 .wm-section-heading { display: flex; justify-content: space-between; align-items: end; margin: 56px 0 23px; }
 .wm-section-heading h2,
-.wm-panel h2 { margin: 9px 0 0; font-family: "Instrument Serif", Georgia, serif; font-size: 42px; font-weight: 400; line-height: 1.06; }
+.wm-panel h2 { margin: 9px 0 0; font-family: "Manrope", "DM Sans", sans-serif; font-size: clamp(29px, 3vw, 39px); font-weight: 750; letter-spacing: -.05em; line-height: 1.16; }
 .wm-panel { padding: clamp(22px, 3vw, 38px); border: 1px solid #e0d4c6; border-radius: 20px; background: #fcf8f1; box-shadow: 0 16px 55px #533e2410; }
 .wm-panel-title { display: flex; justify-content: space-between; gap: 20px; align-items: start; margin-bottom: 30px; }
 .wm-flow-panel { max-width: 880px; }
@@ -77,8 +76,8 @@
 .wm-trip-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .wm-trip-card { display: flex; flex-direction: column; min-height: 275px; padding: 24px; border: 1px solid #dbcfbf; border-radius: 18px; background: #fcf8f1; text-align: left; transition: transform .2s, box-shadow .2s; }
 .wm-trip-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px #47352918; }
-.wm-trip-card strong { margin: 34px 0 10px; font-family: "Instrument Serif", Georgia, serif; font-size: 35px; font-weight: 400; line-height: 1; }
-.wm-trip-card > span:not(.wm-card-top):not(.wm-card-bottom) { color: #74695f; font-size: 13px; }
+.wm-trip-card strong { margin: 34px 0 10px; font-family: "Manrope", "DM Sans", sans-serif; font-size: 28px; font-weight: 750; letter-spacing: -.045em; line-height: 1.18; }
+.wm-trip-card > span:not(.wm-card-top):not(.wm-card-bottom) { color: #74695f; font-size: 14px; }
 .wm-card-top, .wm-card-bottom { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .wm-card-top > span:last-child { color: #c36c50; font-size: 23px; }
 .wm-card-bottom { margin-top: auto; padding-top: 35px; color: #a44e39; font-size: 12px; font-weight: 800; }
@@ -93,9 +92,11 @@
 .wm-room-hero p span { margin: 0 7px; }
 .wm-room-meta { display: grid; justify-items: end; gap: 8px; min-width: 140px; color: #74695f; font-size: 13px; }
 .wm-room-meta strong { color: #a75239; font-size: 21px; }
-.wm-room-meta small { color: #857a70; }
+.wm-room-meta small { color: #857a70; font-size: 12px; }
+.wm-live-status { display: inline-flex; align-items: center; gap: 8px; }
+.wm-live-status > span { width: 7px; height: 7px; border-radius: 50%; background: #648b76; box-shadow: 0 0 0 4px #648b7620; }
 .wm-tabs { display: flex; gap: 5px; margin: 0 0 22px; padding: 4px; border-bottom: 1px solid #d8cabb; overflow-x: auto; }
-.wm-tabs button { padding: 13px 19px; border-radius: 12px 12px 0 0; background: transparent; color: #766c62; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.wm-tabs button { padding: 13px 19px; border-radius: 12px 12px 0 0; background: transparent; color: #766c62; font-size: 14px; font-weight: 700; white-space: nowrap; }
 .wm-tabs button.active { background: #e9dccd; color: #292622; }
 .wm-room > .wm-notice { margin-bottom: 18px; }
 .wm-room-grid { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(260px, .9fr); gap: 20px; align-items: start; }
@@ -106,29 +107,29 @@
 .wm-day-header strong { font-family: "Instrument Serif", Georgia, serif; font-size: 24px; font-weight: 400; }
 .wm-day-header small { margin-left: auto; color: #817366; font-size: 11px; }
 .wm-plan-item { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; align-items: start; gap: 17px; padding: 21px 0; border-top: 1px solid #e1d5c7; }
-.wm-plan-item h3 { margin: 6px 0; font-family: "Instrument Serif", Georgia, serif; font-size: 27px; font-weight: 400; }
-.wm-plan-item p { color: #786f65; font-size: 12px; }
-.wm-time { padding-top: 5px; color: #9c563d; font-size: 12px; font-weight: 800; }
-.wm-status { padding: 7px 10px; border-radius: 999px; background: #ede9dd; color: #69665a; font-size: 11px; font-weight: 700; text-transform: capitalize; }
+.wm-plan-item h3 { margin: 6px 0; font-family: "Manrope", "DM Sans", sans-serif; font-size: 21px; font-weight: 750; letter-spacing: -.035em; }
+.wm-plan-item p { color: #786f65; font-size: 14px; }
+.wm-time { padding-top: 5px; color: #9c563d; font-size: 13px; font-weight: 800; }
+.wm-status { padding: 7px 10px; border-radius: 999px; background: #ede9dd; color: #69665a; font-size: 12px; font-weight: 700; text-transform: capitalize; }
 .wm-status-locked { background: #e5ede5; color: #3f7064; }
 .wm-add-proposal { padding-top: 23px; border-top: 1px solid #e1d5c7; }
 .wm-proposal-form { max-width: 610px; margin-top: 24px; }
 .wm-proposal-form > p, .wm-proposal-form small { color: #756b61; font-size: 13px; line-height: 1.5; }
 .wm-side-note h3, .wm-room-grid aside h3 { margin: 16px 0 12px; font-family: "Instrument Serif", Georgia, serif; font-size: 35px; font-weight: 400; line-height: 1.04; }
-.wm-side-note p, .wm-room-grid aside p { margin-bottom: 25px; color: #756b61; font-size: 13px; line-height: 1.6; }
+.wm-side-note p, .wm-room-grid aside p { margin-bottom: 25px; color: #756b61; font-size: 14px; line-height: 1.6; }
 .wm-side-rule { display: flex; gap: 14px; padding: 15px 0; border-top: 1px solid #e0d4c6; font-size: 13px; font-weight: 750; }
 .wm-side-rule span { color: #bd6d51; }
 .wm-decision-list { display: grid; gap: 12px; }
 .wm-decision { display: flex; justify-content: space-between; align-items: center; gap: 25px; padding: 23px; border: 1px solid #e2d5c7; border-radius: 14px; background: #fffdf9; }
-.wm-decision h3 { margin: 8px 0 7px; font-family: "Instrument Serif", Georgia, serif; font-size: 29px; font-weight: 400; }
-.wm-decision p { color: #74695f; font-size: 13px; }
+.wm-decision h3 { margin: 8px 0 7px; font-family: "Manrope", "DM Sans", sans-serif; font-size: 21px; font-weight: 750; letter-spacing: -.035em; }
+.wm-decision p { color: #74695f; font-size: 14px; }
 .wm-decision-note { display: block; max-width: 450px; margin-top: 12px; color: #9a563f; line-height: 1.45; }
 .wm-decision-actions { display: flex; gap: 9px; flex-shrink: 0; }
 .wm-member-list { display: grid; }
 .wm-member { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-top: 1px solid #e1d5c7; }
 .wm-member > div { display: grid; gap: 3px; }
 .wm-member strong { font-size: 14px; }
-.wm-member small { color: #85786b; font-size: 11px; text-transform: capitalize; }
+.wm-member small { color: #85786b; font-size: 12px; text-transform: capitalize; }
 .wm-avatar { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #dfe9dd; color: #476f62; font-family: "Instrument Serif", Georgia, serif; font-size: 22px; }
 .wm-invite-result { display: grid; gap: 9px; margin-top: 20px; padding: 17px; border: 1px dashed #b6a28e; border-radius: 12px; background: #fffaf3; }
 .wm-invite-result span { color: #78695d; font-size: 11px; font-weight: 700; text-transform: uppercase; }
@@ -143,7 +144,7 @@
 .wm-history-list { display: grid; }
 .wm-history-list article { display: flex; gap: 17px; padding: 20px 0; border-top: 1px solid #e0d4c6; }
 .wm-history-list article > div { display: grid; gap: 6px; }
-.wm-history-list p, .wm-history-list small { color: #796d60; font-size: 12px; }
+.wm-history-list p, .wm-history-list small { color: #796d60; font-size: 13px; }
 .wm-history-dot { width: 10px; height: 10px; margin-top: 4px; border-radius: 50%; background: #cf7759; }
 .wm-app-footer { display: flex; justify-content: space-between; gap: 15px; padding-top: 26px; padding-bottom: 35px; border-top: 1px solid #ded2c3; color: #7b7167; font-size: 12px; }
 @media (max-width: 900px) {
@@ -159,8 +160,8 @@
 @media (max-width: 620px) {
   .wm-container { width: min(100% - 30px, 1220px); }
   .wm-app-header-inner { min-height: 86px; gap: 13px; flex-wrap: wrap; padding-top: 10px; padding-bottom: 11px; }
-  .wm-brand { font-size: 25px; }
-  .wm-brand-mark { width: 31px; height: 31px; font-size: 31px; margin-right: 6px; }
+  .wm-brand { font-size: 27px; }
+  .wm-brand svg { width: 28px; height: 28px; }
   .wm-app-header nav { order: 3; justify-content: space-between; width: 100%; margin: 0; padding-top: 4px; }
   .wm-account { margin-left: auto; }
   .wm-app-header nav a, .wm-account span { display: none; }
@@ -191,3 +192,92 @@
 @media (prefers-reduced-motion: reduce) {
   .workspace *, .wm-auth-page * { transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+.wm-plan-switch { display: flex; gap: 5px; padding: 4px; border: 1px solid #decfbd; border-radius: 999px; background: #f3eadd; }
+.wm-plan-switch button { padding: 8px 14px; border-radius: 999px; color: #756b61; font-size: 13px; font-weight: 750; }
+.wm-plan-switch button.active { background: #fffaf3; color: #9d4d35; box-shadow: 0 2px 8px #533e241b; }
+.wm-calendar-guide { display: flex; justify-content: space-between; gap: 18px; margin: -4px 0 19px; color: #756b61; font-size: 13px; line-height: 1.45; }
+.wm-calendar-guide span:last-child { color: #9c563d; font-weight: 700; }
+.wm-calendar-scroll { overflow-x: auto; border: 1px solid #decebd; border-radius: 16px; background: #f6f0e7; }
+.wm-calendar { display: grid; min-width: max-content; }
+.wm-calendar-day { min-width: 225px; border-right: 1px solid #e2d5c7; }
+.wm-calendar-day:last-child { border-right: 0; }
+.wm-calendar-day > header { display: grid; gap: 5px; min-height: 93px; padding: 17px; border-bottom: 1px solid #decebd; background: #ede3d7; }
+.wm-calendar-day > header strong { font-family: "Manrope", "DM Sans", sans-serif; font-size: 20px; font-weight: 750; letter-spacing: -.035em; }
+.wm-calendar-day > header small { color: #827468; font-size: 12px; }
+.wm-calendar-slot { display: grid; grid-template-columns: 45px minmax(0, 1fr); min-height: 122px; border-bottom: 1px dashed #dfd4c7; transition: background .15s; }
+.wm-calendar-slot:hover { background: #ebdfce; }
+.wm-calendar-hour { padding: 12px 4px 0 9px; color: #74695f; font-size: 12px; font-weight: 700; }
+.wm-calendar-slot-content { display: grid; align-content: start; gap: 7px; padding: 7px 8px 7px 0; }
+.wm-calendar-item { display: grid; gap: 7px; padding: 12px; border: 1px solid #ddb99f; border-left: 4px solid #c56e4f; border-radius: 10px; background: #fff7ed; box-shadow: 0 5px 12px #61412512; cursor: grab; }
+.wm-calendar-item:active { cursor: grabbing; }
+.wm-calendar-item.is-locked { border-color: #b9d0bd; border-left-color: #648b76; background: #f0f7ef; }
+.wm-calendar-item.is-branch { border-color: #c1afcf; border-left-color: #826d92; background: #f6f1f7; }
+.wm-calendar-item-top { display: flex; justify-content: space-between; gap: 5px; color: #9b5840; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.wm-calendar-item.is-locked .wm-calendar-item-top { color: #4f7962; }
+.wm-calendar-item strong { font-family: "Manrope", "DM Sans", sans-serif; font-size: 15px; font-weight: 750; letter-spacing: -.025em; line-height: 1.35; }
+.wm-calendar-item small { color: #6e675e; font-size: 12px; }
+.wm-calendar-item button { justify-self: start; padding: 0; color: #96583c; font-size: 12px; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+.wm-calendar-rejoin { display: grid; gap: 5px; margin: 9px; padding: 12px; border: 1px dashed #7a8f78; border-radius: 10px; background: #e6eddf; }
+.wm-calendar-rejoin span { color: #3c705d; font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+.wm-calendar-rejoin strong { font-family: "Instrument Serif", Georgia, serif; font-size: 20px; font-weight: 400; }
+.wm-calendar-rejoin small { color: #617467; font-size: 11px; }
+.wm-calendar-dialog-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: #1d2925a8; }
+.wm-calendar-dialog { width: min(490px, 100%); }
+.wm-calendar-dialog p { margin: -10px 0 2px; color: #756b61; font-size: 14px; line-height: 1.6; }
+.wm-chat-shell { display: grid; grid-template-columns: minmax(0, 1fr) 288px; gap: 18px; align-items: stretch; }
+.wm-chat-main { display: flex; flex-direction: column; min-width: 0; min-height: 650px; overflow: hidden; border: 1px solid #e0d4c6; border-radius: 22px; background: #fcf8f1; box-shadow: 0 16px 55px #533e2410; }
+.wm-chat-header { display: flex; align-items: center; gap: 15px; min-height: 102px; padding: 20px 26px; border-bottom: 1px solid #e2d5c7; background: #fffaf3; }
+.wm-chat-room-icon { display: grid; place-items: center; flex: 0 0 49px; height: 49px; border-radius: 16px; background: #e9d2c3; color: #a65339; font-family: "Manrope", sans-serif; font-size: 28px; font-weight: 800; }
+.wm-chat-room-title { min-width: 0; margin-right: auto; }
+.wm-chat-room-title h2 { overflow: hidden; margin: 3px 0; font-family: "Manrope", "DM Sans", sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -.04em; text-overflow: ellipsis; white-space: nowrap; }
+.wm-chat-room-title p { display: flex; align-items: center; gap: 7px; color: #766d62; font-size: 12px; }
+.wm-chat-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #689075; }
+.wm-chat-live-dot.is-offline { background: #b17b6b; }
+.wm-chat-avatars { display: flex; padding-left: 8px; }
+.wm-chat-avatars span { display: grid; place-items: center; width: 33px; height: 33px; margin-left: -8px; border: 2px solid #fffaf3; border-radius: 50%; background: #d9e7db; color: #426c5c; font-family: "Manrope", sans-serif; font-size: 12px; font-weight: 800; }
+.wm-chat-avatars span:nth-child(2n) { background: #f1dccb; color: #98543c; }
+.wm-chat-avatars span:nth-child(3n) { background: #e6e0e9; color: #6f5c7d; }
+.wm-chat-main > .wm-notice { margin: 24px; }
+.wm-chat-timeline { display: flex; flex: 1; flex-direction: column; gap: 16px; min-height: 360px; max-height: min(62vh, 650px); overflow-y: auto; padding: 26px clamp(18px, 3vw, 34px); background-color: #f6f0e7; background-image: radial-gradient(#d7c9b947 1px, transparent 1px); background-size: 24px 24px; }
+.wm-chat-day { display: flex; align-items: center; gap: 15px; margin: 4px 0 9px; color: #85786c; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-align: center; text-transform: uppercase; }
+.wm-chat-day::before, .wm-chat-day::after { flex: 1; height: 1px; background: #ddcfc1; content: ""; }
+.wm-chat-row { display: flex; align-items: end; gap: 10px; max-width: min(82%, 630px); }
+.wm-chat-row.is-mine { align-self: end; }
+.wm-chat-avatar { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border-radius: 50%; background: #e7d3c3; color: #a0553e; font-family: "Manrope", sans-serif; font-size: 14px; font-weight: 800; }
+.wm-chat-row.is-agent .wm-chat-avatar { background: #dbe6d9; color: #497463; }
+.wm-chat-message { min-width: 0; padding: 13px 17px; border: 1px solid #e4d8ca; border-radius: 17px 17px 17px 4px; background: #fffaf4; box-shadow: 0 4px 16px #513a2810; }
+.wm-chat-row.is-mine .wm-chat-message { border-color: #bdd2c0; border-radius: 17px 17px 4px 17px; background: #e7f0e7; }
+.wm-chat-row.is-agent .wm-chat-message { border-color: #d5b49e; background: #f8e9dc; }
+.wm-chat-message-meta { display: flex; align-items: baseline; gap: 14px; margin-bottom: 5px; }
+.wm-chat-message-meta strong { color: #9d543e; font-size: 12px; font-weight: 800; }
+.wm-chat-row.is-mine .wm-chat-message-meta strong { color: #3f7059; }
+.wm-chat-message-meta time { color: #82786d; font-size: 11px; white-space: nowrap; }
+.wm-chat-message p { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; color: #352f29; font-size: 14px; line-height: 1.58; }
+.wm-chat-proposal-link { display: inline-flex; gap: 12px; margin-top: 12px; padding: 9px 12px; border: 1px solid #c7a78f; border-radius: 9px; background: #fffaf3; color: #8b4d36; font-size: 12px; font-weight: 800; }
+.wm-chat-proposal-link:hover { background: #f1ddcb; }
+.wm-chat-welcome { display: grid; justify-items: center; align-content: center; flex: 1; gap: 11px; padding: 35px; text-align: center; }
+.wm-chat-welcome-symbol { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 21px; background: #e8d2c4; color: #ac6349; font-size: 35px; }
+.wm-chat-welcome h3 { font-family: "Instrument Serif", Georgia, serif; font-size: 38px; font-weight: 400; }
+.wm-chat-welcome p { max-width: 330px; color: #70675e; font-size: 14px; line-height: 1.6; }
+.wm-chat-compose-area { padding: 17px 23px 14px; border-top: 1px solid #e0d4c6; background: #fffaf3; }
+.wm-chat-compose { display: flex; align-items: end; gap: 10px; padding: 7px; border: 1px solid #cfc0ae; border-radius: 16px; background: #fffdf9; }
+.wm-chat-compose:focus-within { border-color: #bd765d; box-shadow: 0 0 0 3px #d66f4e24; }
+.wm-chat-compose textarea { flex: 1; min-width: 0; max-height: 150px; padding: 11px 13px; border: 0; outline: none; resize: none; background: transparent; color: #292621; font-family: "DM Sans", sans-serif; font-size: 14px; line-height: 1.5; }
+.wm-chat-send { display: grid; place-items: center; flex: 0 0 43px; height: 43px; border-radius: 12px; background: #d66f4e; color: #fffaf3; font-size: 25px; font-weight: 800; }
+.wm-chat-send:disabled { opacity: .45; }
+.wm-chat-compose-footer { display: flex; justify-content: space-between; gap: 12px; padding: 10px 4px 0; color: #86796e; font-size: 11px; }
+.wm-chat-compose-footer button { padding: 0; background: transparent; color: #a5573d; font-size: 12px; font-weight: 800; }
+.wm-chat-aside { align-self: start; padding: 28px 24px; border: 1px solid #d9cbbd; border-radius: 22px; background: #eee5d9; }
+.wm-chat-aside h3 { margin: 17px 0 11px; font-family: "Instrument Serif", Georgia, serif; font-size: 37px; font-weight: 400; line-height: 1.03; }
+.wm-chat-aside p { color: #74695f; font-size: 14px; line-height: 1.65; }
+.wm-chat-aside > button { display: flex; justify-content: space-between; width: 100%; margin: 25px 0 21px; padding: 12px 15px; border-radius: 12px; background: #293d35; color: #fff9f1; font-size: 13px; font-weight: 800; }
+.wm-chat-aside > button:hover { background: #405d50; }
+.wm-chat-aside-rule { display: flex; gap: 13px; padding: 12px 0; border-top: 1px solid #d8c9b9; color: #544c43; font-size: 12px; font-weight: 700; }
+.wm-chat-aside-rule span { color: #b35c42; }
+.wm-genome-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.wm-side-note .wm-genome-grid { grid-template-columns: 1fr; }
+.wm-genome-card { min-height: 110px; padding: 17px; border: 1px solid #ddd0c2; border-radius: 13px; background: #fffaf3; }
+.wm-genome-card strong { display: block; margin: 10px 0 4px; font-family: "Instrument Serif", Georgia, serif; font-size: 24px; font-weight: 400; }
+.wm-genome-card p { margin: 0; color: #756b61; font-size: 13px; line-height: 1.5; }
+@media (max-width: 900px) { .wm-chat-shell { grid-template-columns: 1fr; } .wm-chat-aside { display: none; } }
+@media (max-width: 700px) { .wm-calendar-guide { flex-direction: column; } .wm-genome-grid { grid-template-columns: 1fr; } .wm-chat-row { max-width: 94%; } .wm-chat-header { padding: 17px; } .wm-chat-avatars { display: none; } .wm-chat-compose-area { padding: 13px; } .wm-chat-compose-footer > span { display: none; } }

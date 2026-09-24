@@ -20,7 +20,22 @@ const configSchema = z.object({
 export type CoreConfig = z.infer<typeof configSchema>;
 
 export function readConfig(env: NodeJS.ProcessEnv = process.env): CoreConfig {
-  return configSchema.parse(env);
+  // The initial team env used NEXT_PUBLIC names. They are public Supabase Auth
+  // values, so Core may reuse them; database credentials stay server-only.
+  const supabaseUrl = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+  return configSchema.parse({
+    ...env,
+    SUPABASE_URL: supabaseUrl,
+    SUPABASE_PUBLISHABLE_KEY:
+      env.SUPABASE_PUBLISHABLE_KEY ||
+      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+      env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    SUPABASE_JWT_ISSUER:
+      env.SUPABASE_JWT_ISSUER ||
+      (supabaseUrl ? `${supabaseUrl}/auth/v1` : undefined),
+    SUPABASE_JWT_AUDIENCE:
+      env.SUPABASE_JWT_AUDIENCE || (supabaseUrl ? "authenticated" : undefined),
+  });
 }
 
 export function readiness(config: CoreConfig): {

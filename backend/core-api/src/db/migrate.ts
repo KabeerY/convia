@@ -26,6 +26,10 @@ const migrations = [
     name: "0006_v0_extensions_access",
     path: resolve(dataRoot, "migrations/0006_v0_extensions_access.sql"),
   },
+  {
+    name: "0007_live_trip_features",
+    path: resolve(dataRoot, "migrations/0007_live_trip_features.sql"),
+  },
 ];
 
 async function main() {

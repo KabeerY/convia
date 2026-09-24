@@ -11,6 +11,7 @@
     "contracts:check": "pnpm --filter @convia/contracts check",
     "db:migrate": "pnpm --filter @convia/core-api db:migrate",
     "db:seed": "pnpm --filter @convia/core-api db:seed",
+    "db:seed-v0": "pnpm --filter @convia/core-api db:seed-v0",
     "test:unit": "pnpm --filter @convia/contracts test && pnpm --filter @convia/core-api test",
     "test:integration": "pnpm --filter @convia/core-api test:integration",
     "test:real-auth": "pnpm --filter @convia/core-api test:real-auth",

@@ -7,6 +7,7 @@ import { guidesModule } from "./guides/index.js";
 import { mediaCatalogueModule } from "./media-catalogue/http/index.js";
 import { notificationsModule } from "./notifications/index.js";
 import { tripsModule } from "./trips/http/index.js";
+import { v0Module } from "./v0/index.js";
 
 export const modules: CoreModule[] = [
   tripsModule,
@@ -16,6 +17,7 @@ export const modules: CoreModule[] = [
   discoveryModule,
   guidesModule,
   mediaCatalogueModule,
+  v0Module,
 ];
 
 export async function registerModules(

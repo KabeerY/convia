@@ -12,8 +12,9 @@ export default function DecisionRoom({ decisions, unavailable, canVote, busy, on
           const threshold = decisionThreshold(decision);
           const revisionReady = Number.isInteger(decision.revision) && decision.revision >= 0;
           const operationCount = decision.operations?.length ?? decision.operation_count ?? 1;
+          const item = decision.operations?.[0]?.new_item;
           return <article className="wm-decision" key={id || index}>
-            <div><span className="wm-kicker">{state.replaceAll("_", " ")}</span><h3>{decision.title || "Trip change"}</h3><p>{operationCount} change{operationCount === 1 ? "" : "s"} · {decision.yes_count ?? 0} of {threshold ?? "?"} yes votes needed</p>{state === "open" && canVote && !revisionReady && <small className="wm-decision-note">Waiting for a decision revision from the trip service before voting.</small>}</div>
+            <div><span className="wm-kicker">{state === "committed" ? "LOCKED INTO THE PLAN" : state.replaceAll("_", " ")}</span><h3>{decision.title || "Trip change"}</h3><p>{operationCount} change{operationCount === 1 ? "" : "s"} · {decision.yes_count ?? 0} of {threshold ?? "?"} yes votes needed</p>{item && <small className="wm-decision-note">{item.title} · Day {item.day_index}{item.starts_at ? ` · ${new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" }).format(new Date(item.starts_at))}` : ""}</small>}{decision.actor_ballot && <small className="wm-decision-note">Your vote: {decision.actor_ballot}</small>}{state === "open" && canVote && !revisionReady && <small className="wm-decision-note">Waiting for a decision revision from the trip service before voting.</small>}</div>
             {state === "open" && canVote && id && <div className="wm-decision-actions"><button className="wm-primary" disabled={busy || !revisionReady} onClick={() => onVote(decision, "yes")}>Vote yes</button><button className="wm-secondary" disabled={busy || !revisionReady} onClick={() => onVote(decision, "no")}>Vote no</button></div>}
           </article>;
         })}</div>}

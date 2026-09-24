@@ -42,7 +42,12 @@ export function describeError(error) {
     TRIP_FULL: "This trip has reached its member limit.",
     INVALID_INVITE: "This invitation is invalid, expired, or has been used up.",
     ADMISSION_FORBIDDEN: "Only a trip organizer can do that.",
-    STALE_VERSION: "The plan changed. Refresh it and create a new proposal.",
+    STALE_VERSION: "The plan changed. Wait for the latest version, then create a new proposal.",
+    STALE_ITINERARY: "The plan changed while you were editing. Wait for the update, then propose again.",
+    REVISION_CONFLICT: "Someone voted just before you. Wait for the updated result, then try again.",
+    DECISION_CLOSED: "This vote has closed. The latest plan is ready to view.",
+    INVALID_ITEM_TIME: "Choose a time that fits within the trip day.",
+    ITEM_NOT_FOUND: "That activity changed. Wait for the calendar to update, then try again.",
     ITEM_LOCKED: "This item is locked. Raise a proposal to change it.",
   };
   return known[error?.code] || error?.message || "Something went wrong. Please try again.";

@@ -21,7 +21,11 @@ export interface TransactionScope {
   readonly id: string;
   authorize(policy: Policy, resourceId?: string): Promise<void>;
   execute<TInput, TOutput>(name: string, input: TInput): Promise<TOutput>;
-  query<TOutput>(name: string, resourceId?: string): Promise<TOutput>;
+  query<TOutput>(
+    name: string,
+    resourceId?: string,
+    input?: unknown,
+  ): Promise<TOutput>;
 }
 
 export interface DomainPort {
@@ -46,6 +50,7 @@ export interface DomainPort {
     name: string,
     context: CommandContext,
     resourceId?: string,
+    input?: unknown,
   ): Promise<TOutput>;
 }
 
