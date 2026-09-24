@@ -13,6 +13,8 @@ import {
 import CalendarDiscussions from "./CalendarDiscussions";
 import DecisionRoom from "./DecisionRoom";
 import "./calendar.css";
+import TripMap from './TripMap';
+import LocationPicker from './LocationPicker';
 
 const DAY_MS = 86400000;
 const SCALE = 1.15;
@@ -161,6 +163,9 @@ export default function PlanCalendar({
   onVote,
   onCommand,
   actionError,
+  view = 'calendar',
+  selectedDay,
+  onDayChange,
 }) {
   const mobile = useMobile();
   const scrollRef = useRef(null);
@@ -174,10 +179,12 @@ export default function PlanCalendar({
     measure();
     return () => observer.disconnect();
   }, []);
-  const [day, setDay] = useState(trip.start_date),
+  const [localDay, setLocalDay] = useState(trip.start_date),
     [panel, setPanel] = useState(null),
     [ideas, setIdeas] = useState(false),
     [collapsed, setCollapsed] = useState([]);
+  const day = selectedDay || localDay;
+  const setDay = value => { setLocalDay(value); onDayChange?.(value); };
   const close = React.useCallback(() => setPanel(null), []);
   const branches = calendar?.branches || [];
   const actor = calendar?.actor_id;
@@ -401,7 +408,8 @@ export default function PlanCalendar({
           </button>
         ))}
       </div>
-      <div className={`cc-workspace ${ideas && !mobile ? "with-ideas" : ""}`}>
+      {view === 'map' && <TripMap items={normalized} pending={pending} branches={allBranches} day={day} timezone={timezone} onOpen={openActivity}/>}
+      <div style={view === 'map' ? {display:'none'} : undefined} className={`cc-workspace ${ideas && !mobile ? "with-ideas" : ""}`}>
         <div
           ref={scrollRef}
           className="cc-scroll"
@@ -770,7 +778,7 @@ export default function PlanCalendar({
           </aside>
         )}
       </div>
-      <p className="cc-caption">
+      <p className="cc-caption" hidden={view === 'map'}>
         {mobile
           ? "Tap an empty time to add an activity. Swipe sideways when this day has branches."
           : "Click an empty time or drag an idea into place. Drag existing activities to propose a move."}
@@ -1227,6 +1235,7 @@ function ActivityForm({
       item?.description || initial.idea?.description || "",
     ),
     [location, setLocation] = useState(item?.location || ""),
+    [coordinates, setCoordinates] = useState(item?.coordinates || null),
     [error, setError] = useState("");
   let conflicts = [];
   try {
@@ -1265,6 +1274,7 @@ function ActivityForm({
               ends_at,
               description,
               location,
+              coordinates,
             },
           });
         } catch (err) {
@@ -1328,15 +1338,7 @@ function ActivityForm({
           ))}
         </select>
       </label>
-      <label>
-        Location or city
-        <input
-          value={location}
-          maxLength={200}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="Optional · enter a place"
-        />
-      </label>
+      <LocationPicker tripId={trip.trip_id} label={location} onLabel={setLocation} value={coordinates} onChange={setCoordinates}/>
       <label>
         Notes
         <textarea

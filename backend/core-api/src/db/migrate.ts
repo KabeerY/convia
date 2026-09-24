@@ -46,6 +46,43 @@ const migrations = [
     name: "0011_calendar_cancellation",
     path: resolve(dataRoot, "migrations/0011_calendar_cancellation.sql"),
   },
+  {
+    name: "0012_media_faces",
+    path: resolve(dataRoot, "migrations/0012_media_faces.sql"),
+  },
+  {
+    name: "0013_media_ingest",
+    path: resolve(dataRoot, "migrations/0013_media_ingest.sql"),
+  },
+  {
+    name: "0014_media_claim_uploader",
+    path: resolve(dataRoot, "migrations/0014_media_claim_uploader.sql"),
+  },
+  {
+    name: "0015_media_object",
+    path: resolve(dataRoot, "migrations/0015_media_object.sql"),
+  },
+  {
+    name: "0016_media_claim_reclaim",
+    path: resolve(dataRoot, "migrations/0016_media_claim_reclaim.sql"),
+  },
+  {
+    name: "0017_photos_for_person_fix",
+    path: resolve(dataRoot, "migrations/0017_photos_for_person_fix.sql"),
+  },
+  {
+    name: "0018_face_id_in_person_photos",
+    path: resolve(dataRoot, "migrations/0018_face_id_in_person_photos.sql"),
+  },
+  {
+    name: "0019_media_job_purpose",
+    path: resolve(dataRoot, "migrations/0019_media_job_purpose.sql"),
+  },
+  {
+    name: "0020_rematch_photos_on_reference_enroll",
+    path: resolve(dataRoot, "migrations/0020_rematch_photos_on_reference_enroll.sql"),
+  },
+  { name: "0021_map_locations", path: resolve(dataRoot, "migrations/0021_map_locations.sql") },
 ];
 
 async function main() {

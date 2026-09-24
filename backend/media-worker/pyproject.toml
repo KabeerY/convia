@@ -6,7 +6,13 @@ build-backend = "hatchling.build"
 name = "convia-media-worker"
 version = "0.1.0"
 requires-python = ">=3.12,<3.15"
-dependencies = ["convia-contracts==0.1.0"]
+dependencies = [
+  "convia-contracts==0.1.0",
+  "httpx>=0.27",
+  "numpy>=1.26",
+  "opencv-python-headless>=4.9",
+  "pillow>=10.4",
+]
 
 [tool.uv.sources]
 convia-contracts = { path = "../../packages/contracts", editable = true }

@@ -10,6 +10,7 @@
     "db:seed-v0": "node --env-file-if-exists=../../.env --import tsx src/db/seed-v0.ts",
     "db:conformance": "node --env-file-if-exists=../../.env --import tsx src/db/conformance.ts",
     "test:real-auth": "node --env-file-if-exists=../../.env --import tsx src/auth/real-users.smoke.ts",
+    "face:e2e": "node --env-file-if-exists=../../.env scripts/face-e2e.mjs",
     "test": "node --import tsx --test src/*.test.ts src/**/*.test.ts",
     "test:integration": "node --env-file-if-exists=../../.env --import tsx --test src/db/*.integration.test.ts",
     "typecheck": "tsc --noEmit",

@@ -100,6 +100,7 @@
 .wm-tabs button.active { background: #e9dccd; color: #292622; }
 .wm-room > .wm-notice { margin-bottom: 18px; }
 .wm-room-grid { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(260px, .9fr); gap: 20px; align-items: start; }
+.wm-memories-grid { grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr); gap: 18px; }
 .wm-item-list { display: grid; }
 .wm-day-section + .wm-day-section { margin-top: 22px; }
 .wm-day-header { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-top: 1px solid #ddcbbb; }
@@ -282,7 +283,51 @@
 
 .wm-header-navigation { display: contents; }
 .wm-menu-toggle { display: none; }
+
+/* Memories: face-grouped trip album */
+.wm-people-strip { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 18px; }
+.wm-people-strip > button { display: flex; align-items: center; gap: 9px; padding: 9px 13px 9px 9px; border: 1px solid #ddd0c2; border-radius: 999px; background: #fffaf3; color: #292621; font-size: 13px; }
+.wm-people-strip > button.active { border-color: #476f62; background: #e6efe8; }
+.wm-people-strip small { color: #756b61; }
+.wm-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.wm-photo-card { margin: 0; overflow: hidden; border: 1px solid #ddd0c2; border-radius: 13px; background: #fffaf3; }
+.wm-photo-card img { display: block; width: 100%; height: 150px; object-fit: cover; background: #efe7db; }
+.wm-photo-fallback { display: grid; place-items: center; height: 150px; color: #86796e; font-size: 12px; background: #efe7db; }
+.wm-photo-card figcaption { padding: 8px 10px 10px; font-size: 12px; color: #756b61; }
+.wm-photo-actions { display: flex; gap: 8px; margin-top: 4px; }
+.wm-photo-actions select { max-width: 100%; padding: 7px 9px; border: 1px solid #d4c4b5; border-radius: 9px; background: #fff; font-size: 12px; }
+.wm-upload-list { margin: 12px 0 0; padding: 0; list-style: none; font-size: 12.5px; color: #756b61; }
+.wm-upload-list li { padding: 5px 0; border-top: 1px dashed #ddd0c2; }
+.wm-upload-feedback { display: flex; align-items: flex-start; gap: 11px; padding: 13px 15px; border: 1px solid #d7cbbb; border-radius: 13px; background: #f5f0e7; color: #48443d; }
+.wm-upload-feedback-dot { display: grid; place-items: center; flex: 0 0 21px; width: 21px; height: 21px; margin-top: 1px; border-radius: 50%; background: #e7dccd; color: #8e563d; }
+.wm-upload-feedback-dot::after { content: "…"; font-size: 12px; font-weight: 800; line-height: 1; }
+.wm-upload-feedback strong { display: block; margin-bottom: 3px; font-size: 13px; }
+.wm-upload-feedback p { margin: 0; color: #756b61; font-size: 12.5px; line-height: 1.45; }
+.wm-upload-recheck { margin-top: 7px; color: #476f62; font-size: 12px; }
+.wm-upload-feedback.is-processing { border-color: #ddc8a1; background: #fbf4e7; }
+.wm-upload-feedback.is-processing .wm-upload-feedback-dot { background: #e7d6b6; color: #855e27; }
+.wm-upload-feedback.is-done { border-color: #b7cfc0; background: #eef7ef; }
+.wm-upload-feedback.is-done .wm-upload-feedback-dot { background: #d6e8d8; color: #35674f; }
+.wm-upload-feedback.is-done .wm-upload-feedback-dot::after { content: "✓"; }
+.wm-upload-feedback.is-failed { border-color: #dba999; background: #fff0e9; }
+.wm-upload-feedback.is-failed .wm-upload-feedback-dot { background: #f2d3c8; color: #8a352a; }
+.wm-upload-feedback.is-failed .wm-upload-feedback-dot::after { content: "!"; }
+.wm-file { display: inline-block; margin-top: 8px; padding: 11px 16px; border-radius: 12px; background: #476f62; color: #fffaf3; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.wm-file.is-disabled { cursor: not-allowed; opacity: .48; }
+.wm-file input { display: none; }
+.wm-form .wm-check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 600; letter-spacing: 0; }
+.wm-form .wm-check input { flex: 0 0 19px; width: 19px; min-height: 19px; height: 19px; margin: 0; padding: 0; border: 0; border-radius: 4px; accent-color: #476f62; }
+.wm-divider { margin: 20px 0; border: 0; border-top: 1px solid #ddd0c2; }
+.wm-reference-state { padding: 12px 14px; border: 1px solid #ddd0c2; border-radius: 12px; background: #f6f1e8; }
+.wm-reference-state { display: grid; justify-items: start; gap: 8px; padding: 17px; }
+.wm-reference-state p { margin: 0; line-height: 1.5; }
+.wm-reference-state small { color: #756b61; }
+.wm-memories-empty { margin-top: 19px; min-height: 255px; align-content: center; padding: 32px 22px; border: 1px dashed #d3c5b4; border-radius: 16px; background: #f8f3eb; }
+.wm-memories-empty .wm-empty-icon { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: #e9ded0; font-size: 29px; }
+.wm-memories-empty h3 { margin: 6px 0 0; font-size: 29px; }
+.wm-memories-empty p { margin: 0; }
 @media (max-width: 760px) {
+  .wm-memories-grid { grid-template-columns: 1fr; }
   .wm-app-header-inner { position: relative; min-height: 68px; flex-wrap: nowrap; justify-content: space-between; gap: 16px; padding-top: 0; padding-bottom: 0; }
   .wm-menu-toggle { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid #d4c4b5; border-radius: 12px; background: transparent; color: #272522; }
   .wm-header-navigation { display: none; position: absolute; top: calc(100% + 8px); left: 0; right: 0; padding: 12px; background: #fffaf3; border: 1px solid #dfd3c7; border-radius: 16px; box-shadow: 0 14px 35px #27252218; }

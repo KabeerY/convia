@@ -1374,3 +1374,39 @@ select:focus-visible {
  .door-leaf-left .door-pull { right: 9px; }
  .door-leaf-right .door-pull { left: 9px; }
 }
+
+/* The desktop gate is deliberately monumental. On a phone it needs to read as
+   one well-proportioned gateway instead of two tall, squeezed panels. */
+@media (max-width: 760px) {
+  .temple-journey {
+    height: 190svh;
+  }
+  .journey-sticky {
+    top: 10px;
+    height: calc(100svh - 20px);
+    min-height: 560px;
+  }
+  .doorway {
+    inset: 22% 0 23%;
+    perspective: 1050px;
+  }
+  .door-face {
+    border-width: 4px;
+  }
+  .door-invitation {
+    top: 52%;
+  }
+  .door-invitation h2 {
+    font-size: clamp(30px, 9vw, 38px);
+    line-height: 1.06;
+  }
+  .journey-arrival {
+    bottom: 72px;
+  }
+  .journey-footer {
+    bottom: 25px;
+  }
+  .journey-art-note {
+    bottom: 7px;
+  }
+}

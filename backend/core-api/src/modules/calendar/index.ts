@@ -3,6 +3,9 @@ import { DomainError } from "../../domain.js";
 import type { CoreModule } from "../../module-contract.js";
 
 const id = z.string().min(1).max(128);
+const searchCache = new Map<string, { at: number; value: unknown }>();
+let searchTail = Promise.resolve();
+let lastSearch = 0;
 const instant = z.iso.datetime({ offset: true });
 const activity = z
   .object({
@@ -21,6 +24,7 @@ const activity = z
     ends_at: instant,
     description: z.string().max(2000).default(""),
     location: z.string().max(200).default(""),
+    coordinates: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }).strict().nullable().optional(),
   })
   .strict()
   .refine(
@@ -91,6 +95,27 @@ const schemas = {
 export const calendarModule: CoreModule = {
   name: "calendar",
   register(app, domain) {
+    app.get('/v1/trips/:trip_id/places', async request => {
+      const params = z.object({ trip_id: id }).parse(request.params);
+      const query = z.object({ q: z.string().trim().min(3).max(160) }).parse(request.query);
+      await domain.query('calendar.read', await domain.resolveContext(request), params.trip_id);
+      const cached = searchCache.get(query.q.toLowerCase());
+      if(cached && Date.now()-cached.at<86400000) return cached.value;
+      const run = searchTail.then(async () => {
+        await new Promise(resolve=>setTimeout(resolve, Math.max(0,1100-(Date.now()-lastSearch))));
+        lastSearch=Date.now();
+        const url=new URL('https://nominatim.openstreetmap.org/search');
+        url.search=new URLSearchParams({q:query.q,format:'jsonv2',limit:'5'}).toString();
+        const response=await fetch(url,{headers:{'User-Agent':'Convia/0.1 (group travel itinerary place search)','Accept-Language':'en'},signal:AbortSignal.timeout(8000)});
+        if(!response.ok) throw new DomainError('PLACE_SEARCH_UNAVAILABLE',503,'Place search is unavailable. You can drop a pin instead.');
+        const data=await response.json() as Array<{display_name:string;lat:string;lon:string}>;
+        const value=data.map(p=>({label:p.display_name,lat:Number(p.lat),lng:Number(p.lon)}));
+        if(searchCache.size>500)searchCache.clear();
+        searchCache.set(query.q.toLowerCase(),{at:Date.now(),value});return value;
+      });
+      searchTail=run.then(()=>undefined,()=>undefined);
+      return run;
+    });
     app.get("/v1/trips/:trip_id/calendar", async (request) => {
       const params = z.object({ trip_id: id }).safeParse(request.params);
       if (!params.success) throw new DomainError("INVALID_REQUEST", 400);

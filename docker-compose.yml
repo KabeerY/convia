@@ -34,3 +34,14 @@ services:
     environment:
       CORE_INTERNAL_URL: http://core:4000
       MEDIA_SERVICE_TOKEN: ${MEDIA_SERVICE_TOKEN:-}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
+      MEDIA_BUCKET: ${MEDIA_BUCKET:-trip-media-private}
+      YUNET_MODEL_PATH: ${YUNET_MODEL_PATH:-/models/yunet.onnx}
+      SFACE_MODEL_PATH: ${SFACE_MODEL_PATH:-/models/sface.onnx}
+      MEDIA_WORKER_POLL_SECONDS: ${MEDIA_WORKER_POLL_SECONDS:-3}
+    volumes:
+      - face-models:/models
+
+volumes:
+  face-models:

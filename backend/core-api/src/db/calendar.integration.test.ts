@@ -78,6 +78,7 @@ test(
         ends_at: "2026-11-01T09:00:00Z",
         description: "Meet here",
         location: "Town",
+        coordinates: {lat: 32.24, lng: 77.18},
       };
       const add = await command(users[0], {
         action: "change",
@@ -96,6 +97,7 @@ test(
       let snapshot = await read();
       assert.equal(snapshot.activities.length, 1);
       assert.equal(snapshot.activities[0].location, "Town");
+      assert.deepEqual(snapshot.activities[0].coordinates, {lat:32.24,lng:77.18});
       assert.equal(snapshot.activities[0].description, "Meet here");
       const source = snapshot.activities[0].item_id;
       const branchInput = {

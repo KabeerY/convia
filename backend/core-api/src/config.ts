@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+const optionalNumber = (fallback: number) =>
+  z.preprocess((value) => {
+    if (value === undefined || value === "") return undefined;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }, z.number().default(fallback));
+
 const configSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   APP_ORIGIN: z.string().optional(),
@@ -12,9 +19,14 @@ const configSchema = z.object({
   SUPABASE_JWT_ISSUER: z.string().optional(),
   SUPABASE_JWT_AUDIENCE: z.string().optional(),
   SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
+  SUPABASE_SECRET_KEY: z.string().optional(),
   TRIPPY_SERVICE_TOKEN: z.string().optional(),
   MEDIA_SERVICE_TOKEN: z.string().optional(),
   RUN_CAPABILITY_SECRET: z.string().optional(),
+  MEDIA_BUCKET: z.string().default("trip-media-private"),
+  FACE_MATCH_THRESHOLD: optionalNumber(0.5).pipe(z.number().min(0).max(1)),
+  FACE_MODEL_VERSION: z.string().default("sface-2024"),
+  MEDIA_MAX_UPLOAD_BYTES: optionalNumber(20000000).pipe(z.number().int().positive()),
 });
 
 export type CoreConfig = z.infer<typeof configSchema>;

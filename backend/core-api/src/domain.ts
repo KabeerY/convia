@@ -37,6 +37,12 @@ const commandNames = new Set([
   "ownership.transfer",
   "decision.publish",
   "decision.vote",
+  "media.upload",
+  "face.reference.revoke",
+  "face.match.correct",
+  "face.result.ingest",
+  "media.job_claim",
+  "media.job_complete",
   "v0.passport.save",
   "v0.chat.send",
   "v0.change.propose",
@@ -50,6 +56,12 @@ const queryNames = new Set([
   "trip.join_requests",
   "conversation.list",
   "media.list",
+  "media.job_status",
+  "media.object",
+  "face.references.list",
+  "face.people",
+  "face.photos_for_person",
+  "face.unassigned",
   "decision.list",
   "decision.read",
   "itinerary.read",
@@ -189,6 +201,33 @@ export function createDomain(
   ): Promise<TOutput> {
     if (!commandNames.has(name)) throw new DomainError("UNKNOWN_COMMAND", 400);
     try {
+      // Media worker + face pipeline commands live in 0012/0013 functions.
+      // Ingest/job-lease calls come from internal service endpoints that
+      // already verified MEDIA_SERVICE_TOKEN; the SQL rechecks trip scope.
+      if (name === "face.result.ingest") {
+        const result = await client.query<{ value: TOutput }>(
+          "SELECT wm_media_ingest($1,$2::jsonb) AS value",
+          [actor.userId, JSON.stringify(input)],
+        );
+        return result.rows[0].value;
+      }
+      if (name === "media.job_claim") {
+        const result = await client.query<{ value: TOutput }>(
+          "SELECT wm_media_job_claim($1) AS value",
+          [(input as { owner?: string })?.owner ?? "media-worker"],
+        );
+        return result.rows[0].value;
+      }
+      if (name === "media.job_complete") {
+        const result = await client.query<{ value: TOutput }>(
+          "SELECT wm_media_job_complete($1,$2::jsonb) AS value",
+          [
+            (input as { owner?: string })?.owner ?? "media-worker",
+            JSON.stringify(input),
+          ],
+        );
+        return result.rows[0].value;
+      }
       const result = await client.query<{ value: TOutput }>(
         name.startsWith("calendar.")
           ? "SELECT wm_calendar_command($1,$3::jsonb) AS value WHERE $2::text = 'calendar.command'"
@@ -196,7 +235,9 @@ export function createDomain(
             ? "SELECT wm_v0_command($1,$2,$3::jsonb) AS value"
             : name.startsWith("decision.")
               ? "SELECT wm_decision_command($1,$2,$3::jsonb) AS value"
-              : "SELECT wm_trip_command($1,$2,$3::jsonb) AS value",
+              : name.startsWith("media.") || name.startsWith("face.")
+                ? "SELECT wm_media_command($1,$2,$3::jsonb) AS value"
+                : "SELECT wm_trip_command($1,$2,$3::jsonb) AS value",
         [actor.userId, name, JSON.stringify(input)],
       );
       return result.rows[0].value;
@@ -225,18 +266,28 @@ export function createDomain(
     )
       throw new DomainError("UNKNOWN_QUERY", 400);
     try {
+      // Single-object lookup backing signed download URLs.
+      if (name === "media.object") {
+        const result = await client.query<{ value: TOutput }>(
+          "SELECT wm_media_object($1,$2) AS value",
+          [actor.userId, resourceId],
+        );
+        return result.rows[0].value;
+      }
       const result = await client.query<{ value: TOutput }>(
         name.startsWith("calendar.")
           ? "SELECT wm_calendar_read($1,$3) AS value WHERE $2::text = 'calendar.read'"
           : name.startsWith("v0.")
             ? "SELECT wm_v0_query($1,$2,$3,$4::jsonb) AS value"
-            : name.startsWith("decision.") ||
-                name === "itinerary.read" ||
-                name === "history.list" ||
-                name === "item.read"
-              ? "SELECT wm_decision_query($1,$2,$3) AS value"
-              : "SELECT wm_trip_query($1,$2,$3) AS value",
-        name.startsWith("v0.")
+            : name.startsWith("media.") || name.startsWith("face.")
+              ? "SELECT wm_media_query($1,$2,$3,$4::jsonb) AS value"
+              : name.startsWith("decision.") ||
+                  name === "itinerary.read" ||
+                  name === "history.list" ||
+                  name === "item.read"
+                ? "SELECT wm_decision_query($1,$2,$3) AS value"
+                : "SELECT wm_trip_query($1,$2,$3) AS value",
+        name.startsWith("v0.") || name.startsWith("media.") || name.startsWith("face.")
           ? [
               actor.userId,
               name,

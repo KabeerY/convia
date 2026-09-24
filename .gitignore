@@ -20,6 +20,8 @@ coverage/
 data-model/uploads/
 data-model/biometrics/
 data-model/models/
+face-test/
+face-test-private/
 backend/media-worker/models/
 backend/media-worker/output/
 frontend/playwright-report/
