@@ -100,6 +100,11 @@
 .wm-room > .wm-notice { margin-bottom: 18px; }
 .wm-room-grid { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(260px, .9fr); gap: 20px; align-items: start; }
 .wm-item-list { display: grid; }
+.wm-day-section + .wm-day-section { margin-top: 22px; }
+.wm-day-header { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-top: 1px solid #ddcbbb; }
+.wm-day-number { color: #ae6347; font-size: 11px; font-weight: 800; letter-spacing: .16em; }
+.wm-day-header strong { font-family: "Instrument Serif", Georgia, serif; font-size: 24px; font-weight: 400; }
+.wm-day-header small { margin-left: auto; color: #817366; font-size: 11px; }
 .wm-plan-item { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; align-items: start; gap: 17px; padding: 21px 0; border-top: 1px solid #e1d5c7; }
 .wm-plan-item h3 { margin: 6px 0; font-family: "Instrument Serif", Georgia, serif; font-size: 27px; font-weight: 400; }
 .wm-plan-item p { color: #786f65; font-size: 12px; }
