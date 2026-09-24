@@ -9,8 +9,10 @@ const configSchema = z.object({
   ),
   SUPABASE_JWT_ISSUER: z.string().optional(),
   SUPABASE_JWT_AUDIENCE: z.string().optional(),
+  SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
   TRIPPY_SERVICE_TOKEN: z.string().optional(),
   MEDIA_SERVICE_TOKEN: z.string().optional(),
+  RUN_CAPABILITY_SECRET: z.string().optional(),
 });
 
 export type CoreConfig = z.infer<typeof configSchema>;
@@ -28,13 +30,12 @@ export function readiness(config: CoreConfig): {
     "SUPABASE_URL",
     "SUPABASE_JWT_ISSUER",
     "SUPABASE_JWT_AUDIENCE",
+    "SUPABASE_PUBLISHABLE_KEY",
   ] as const;
   const missing = required.filter((key) => !config[key]);
-  // PR-02 adds actual database and auth checks. Configuration alone cannot establish readiness.
+  // A live database check is performed by the server's /ready handler.
   return {
-    ready: false,
-    missing: missing.length
-      ? [...missing]
-      : ["database/auth integration (PR-02)"],
+    ready: missing.length === 0,
+    missing: [...missing],
   };
 }
