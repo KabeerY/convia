@@ -6,10 +6,16 @@ build-backend = "hatchling.build"
 name = "convia-trippy-service"
 version = "0.1.0"
 requires-python = ">=3.12,<3.15"
-dependencies = ["fastapi==0.115.12", "uvicorn==0.34.2", "convia-contracts==0.1.0"]
+dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn==0.34.2",
+    "langchain==1.4.2",
+    "langchain-openrouter==0.2.9",
+    "pydantic>=2.11,<3",
+]
 
-[tool.uv.sources]
-convia-contracts = { path = "../../packages/contracts", editable = true }
+[project.optional-dependencies]
+fireworks = ["langchain-fireworks==1.6.2"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/trippy_service"]

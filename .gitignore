@@ -10,6 +10,7 @@ dist/
 __pycache__/
 *.py[cod]
 .venv/
+.vercel/
 .pytest_cache/
 .ruff_cache/
 .uv/
