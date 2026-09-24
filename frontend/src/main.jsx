@@ -5,6 +5,7 @@ import Workspace from "./Workspace";
 import "./styles.css";
 import "./warm-theme.css";
 import "./workspace.css";
+import "./discovery.css";
 
 createRoot(document.getElementById("root")).render(
   window.location.pathname.startsWith("/app") ? <Workspace /> : <App />,

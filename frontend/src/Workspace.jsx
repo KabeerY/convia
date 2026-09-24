@@ -2,8 +2,10 @@ import React, { useCallback, useEffect, useState } from "react";
 import { auth, sessionConfigured } from "./lib/session";
 import { core, describeError } from "./lib/api";
 import { cities, cityName } from "./data/cities";
+import { DiscoverTrips, Passport } from "./Discovery";
 
 const tripIdFromUrl = () => new URLSearchParams(window.location.search).get("trip");
+const viewFromUrl = () => new URLSearchParams(window.location.search).get("view") || "trips";
 const plusDays = (days) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -284,6 +286,7 @@ export default function Workspace() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(sessionConfigured);
   const [tripId, setTripId] = useState(tripIdFromUrl);
+  const [view, setView] = useState(viewFromUrl);
   const [trips, setTrips] = useState([]);
   const [tripsLoading, setTripsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -297,7 +300,7 @@ export default function Workspace() {
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
   useEffect(() => {
-    const pop = () => setTripId(tripIdFromUrl());
+    const pop = () => { setTripId(tripIdFromUrl()); setView(viewFromUrl()); };
     window.addEventListener("popstate", pop);
     return () => window.removeEventListener("popstate", pop);
   }, []);
@@ -311,10 +314,11 @@ export default function Workspace() {
   }, [session?.access_token]);
   useEffect(() => { refreshTrips(); }, [refreshTrips]);
 
-  function navigate(id) {
-    const url = id ? `/app?trip=${encodeURIComponent(id)}` : "/app";
+  function navigate(id, nextView = "trips") {
+    const url = id ? `/app?trip=${encodeURIComponent(id)}` : nextView === "trips" ? "/app" : `/app?view=${encodeURIComponent(nextView)}`;
     window.history.pushState({}, "", url);
     setTripId(id);
+    setView(nextView);
     setError("");
   }
 
@@ -329,8 +333,8 @@ export default function Workspace() {
   if (authLoading) return <div className="wm-boot">Opening Convia…</div>;
   if (!session) return <AuthScreen onSession={setSession} />;
   return <div className="workspace">
-    <header className="wm-app-header"><div className="wm-container wm-app-header-inner"><Brand /><nav aria-label="App navigation"><button onClick={() => navigate(null)}>Your trips</button><a href="/">Explore Convia</a></nav><div className="wm-account"><span>{session.user.email}</span><button onClick={() => auth.auth.signOut()}>Sign out</button></div></div></header>
-    {tripId ? <TripRoom key={tripId} tripId={tripId} token={session.access_token} onBack={() => navigate(null)} /> : <Dashboard trips={trips} loading={tripsLoading} error={error} busy={busy} openTrip={navigate} onCreate={(body) => act("/trips", body, (result) => navigate(result.trip_id))} onJoin={(id, code) => act("/invites/redeem", { trip_id: id, code }, () => navigate(id))} />}
+    <header className="wm-app-header"><div className="wm-container wm-app-header-inner"><Brand /><nav aria-label="App navigation"><button aria-current={!tripId && view === "trips" ? "page" : undefined} onClick={() => navigate(null)}>Your trips</button><button aria-current={!tripId && view === "discover" ? "page" : undefined} onClick={() => navigate(null, "discover")}>Find a group</button><button aria-current={!tripId && view === "passport" ? "page" : undefined} onClick={() => navigate(null, "passport")}>Passport</button></nav><div className="wm-account"><span>{session.user.email}</span><button onClick={() => auth.auth.signOut()}>Sign out</button></div></div></header>
+    {tripId ? <TripRoom key={tripId} tripId={tripId} token={session.access_token} onBack={() => navigate(null)} /> : view === "passport" ? <Passport token={session.access_token} onDiscover={() => navigate(null, "discover")} /> : view === "discover" ? <DiscoverTrips token={session.access_token} onPassport={() => navigate(null, "passport")} onOpenTrip={navigate} /> : <Dashboard trips={trips} loading={tripsLoading} error={error} busy={busy} openTrip={navigate} onCreate={(body) => act("/trips", body, (result) => navigate(result.trip_id))} onJoin={(id, code) => act("/invites/redeem", { trip_id: id, code }, () => navigate(id))} />}
     <footer className="wm-app-footer wm-container">Made for the trip you will talk about long after it ends. <span>Convia · Team pacmen</span></footer>
   </div>;
 }
