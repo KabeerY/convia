@@ -61,6 +61,14 @@ The trip query function returns a bounded public preview, member-only trip and
 membership views, and recipient-scoped conversation and ready-media lists. It
 never returns raw contact, location, biometric or private message rows.
 
+`0024_profile_gender_disclosure.sql` adds
+`wm_profile_gender_disclosures` for an explicitly submitted gender identity and
+a separate opt-in for anonymous aggregate publication. Existing users are not
+inferred or pre-populated; they complete the disclosure on their next app visit.
+Public trip cards count opted-in members who selected `woman` against active
+non-guest travellers. Individual disclosures and self-description text remain
+private.
+
 ## Identity defaults
 
 First verified Auth access creates a fresh `usr_` canonical record and a unique

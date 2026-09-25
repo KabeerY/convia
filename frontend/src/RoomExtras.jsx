@@ -12,7 +12,35 @@ const chatDate = (value) => {
   return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "long", year: "numeric" }).format(date);
 };
 
-export function ChatRoom({ messages, members = [], tripTitle, unavailable, busy, onSend, onReviewProposal }) {
+const trippyThoughts = [
+  "thinking it through",
+  "reading the room",
+  "connecting the details",
+  "weighing the options",
+  "shaping a useful answer",
+];
+
+function TrippyThinking() {
+  const [thought, setThought] = useState(0);
+  useEffect(() => {
+    const timer = window.setInterval(
+      () => setThought((current) => (current + 1) % trippyThoughts.length),
+      1800,
+    );
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return <div className="wm-chat-thinking" role="status" aria-label="Trippy is thinking">
+    <span className="wm-chat-avatar wm-chat-thinking-avatar" aria-hidden="true">↗</span>
+    <div className="wm-chat-thinking-card">
+      <span className="wm-chat-thinking-label">TRIPPY IS</span>
+      <span className="wm-chat-thinking-copy" key={thought} aria-hidden="true">{trippyThoughts[thought]}</span>
+      <span className="wm-chat-thinking-dots" aria-hidden="true"><i /><i /><i /></span>
+    </div>
+  </div>;
+}
+
+export function ChatRoom({ messages, members = [], tripTitle, unavailable, busy, trippyThinking = false, onSend, onReviewProposal }) {
   const [draft, setDraft] = useState("");
   const composeRef = useRef(null);
   const timelineRef = useRef(null);
@@ -20,7 +48,7 @@ export function ChatRoom({ messages, members = [], tripTitle, unavailable, busy,
 
   useEffect(() => {
     if (timelineRef.current) timelineRef.current.scrollTop = timelineRef.current.scrollHeight;
-  }, [lastMessageId]);
+  }, [lastMessageId, trippyThinking]);
 
   async function send(event) {
     event.preventDefault();
@@ -56,6 +84,7 @@ export function ChatRoom({ messages, members = [], tripTitle, unavailable, busy,
               </article>
             </React.Fragment>;
           })}
+          {trippyThinking && <TrippyThinking />}
         </div>
         <div className="wm-chat-compose-area">
           <form className="wm-chat-compose" onSubmit={send}><textarea ref={composeRef} aria-label="Message your group" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} maxLength={1000} rows={2} placeholder="Message the group…" /><button className="wm-chat-send" type="submit" disabled={busy || !draft.trim()} aria-label={busy ? "Sending message" : "Send message"}>{busy ? "…" : "↗"}</button></form>

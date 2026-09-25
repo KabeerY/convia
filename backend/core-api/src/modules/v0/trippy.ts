@@ -31,12 +31,19 @@ export type TrippyChatMessage = {
   sender_name?: string;
 };
 
-export type TrippyServiceAnswer = { answer: string; change_set_id?: string | null };
+export type TrippyServiceAnswer = {
+  answer: string;
+  change_set_id?: string | null;
+};
 
 export function trippyServiceConfigured() {
   const url = process.env.TRIPPY_SERVICE_URL || "";
   const token = process.env.TRIPPY_SERVICE_TOKEN || "";
-  return url.startsWith("https://") && token.length >= 20 && !token.startsWith("replace-");
+  return (
+    url.startsWith("https://") &&
+    token.length >= 20 &&
+    !token.startsWith("replace-")
+  );
 }
 
 export async function askTrippyService(
@@ -45,19 +52,34 @@ export async function askTrippyService(
   tripId: string,
   userId: string,
 ): Promise<TrippyServiceAnswer> {
+  const serviceUrl = process.env.TRIPPY_SERVICE_URL || "";
+  const serviceToken = process.env.TRIPPY_SERVICE_TOKEN || "";
   if (!trippyServiceConfigured()) throw new Error("TRIPPY_NOT_CONFIGURED");
-  const response = await fetch(`${process.env.TRIPPY_SERVICE_URL?.replace(/\/$/, "")}/run`, {
+  const response = await fetch(`${serviceUrl.replace(/\/$/, "")}/run`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Trippy-Service-Token": process.env.TRIPPY_SERVICE_TOKEN!,
+      "X-Trippy-Service-Token": serviceToken,
     },
-    body: JSON.stringify({ query, context: context.slice(-15), trip_id: tripId, user_id: userId }),
+    body: JSON.stringify({
+      query,
+      context: context.slice(-15),
+      trip_id: tripId,
+      user_id: userId,
+    }),
     signal: AbortSignal.timeout(60000),
   });
   if (!response.ok) throw new Error(`TRIPPY_SERVICE_${response.status}`);
-  const payload = z.object({ answer: z.string().trim().min(1), change_set_id: z.string().nullable().optional() }).parse(await response.json());
-  return { answer: payload.answer.slice(0, 1000), ...(payload.change_set_id ? { change_set_id: payload.change_set_id } : {}) };
+  const payload = z
+    .object({
+      answer: z.string().trim().min(1),
+      change_set_id: z.string().nullable().optional(),
+    })
+    .parse(await response.json());
+  return {
+    answer: payload.answer.slice(0, 1000),
+    ...(payload.change_set_id ? { change_set_id: payload.change_set_id } : {}),
+  };
 }
 
 export function trippyConfigured() {

@@ -2,11 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { auth, sessionConfigured } from "./lib/session";
 import { core, describeError } from "./lib/api";
 import { cities, cityName, cityDetails, setCityCatalog } from "./data/cities";
-import { DiscoverTrips, Passport } from "./Discovery";
+import { DiscoverTrips, GenderOnboarding, Passport } from "./Discovery";
 import DecisionRoom from "./DecisionRoom";
 import Memories from "./Memories";
 import CalendarDiscussions from "./CalendarDiscussions";
 import { ballotRequest } from "./lib/decisions";
+import { isTrippyThinking } from "./lib/chatActivity";
 import PlanDays from "./PlanDays";
 import PlanCalendar from "./PlanCalendar";
 import { ChatRoom, GroupGenome } from "./RoomExtras";
@@ -334,9 +335,9 @@ function TripRoom({ tripId, token, onBack }) {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    const timer = window.setInterval(() => { if (snapshot && document.visibilityState === "visible") load(true); }, tab === "chat" ? 3500 : 7000);
+    const timer = window.setInterval(() => { if (snapshot && document.visibilityState === "visible") load(true); }, tab === "chat" ? (isTrippyThinking(messages) ? 1200 : 3500) : 7000);
     return () => window.clearInterval(timer);
-  }, [load, snapshot, tab]);
+  }, [load, messages, snapshot, tab]);
 
   async function mutate(path, body, after) {
     setBusy(true);
@@ -392,7 +393,7 @@ function TripRoom({ tripId, token, onBack }) {
       {tab === "plan" && <BudgetConverter key={tripId} token={token} destinationCurrency={cityDetails(trip.destination_city_id)?.currency} homeCurrency={trip.home_currency} />}
       {tab === "plan" && <section className="wm-panel cc-calendar-panel"><div className="wm-panel-title"><div><span className="wm-kicker">THE SHARED PLAN</span><h2>One place for everyone.</h2></div><div className="wm-plan-switch"><button className={planView === "calendar" ? "active" : ""} onClick={() => setPlanView("calendar")}>Calendar</button><button className={planView === "list" ? "active" : ""} onClick={() => setPlanView("list")}>Day list</button><button className={planView === "map" ? "active" : ""} onClick={() => setPlanView("map")}>Map</button></div></div>{unavailable.plan ? <Notice tone="error">{unavailable.plan}</Notice> : planView !== "list" ? <PlanCalendar selectedDay={mapDay} onDayChange={setMapDay} view={planView} items={items} forks={forks} calendar={calendar} unavailable={unavailable.calendar} trip={trip} timezone={settings.timezone} version={version} busy={busy} members={members} canVote={canVote && !!calendar && !unavailable.calendar} decisions={decisions} actionError={actionError} onVote={voteOnDecision} onCommand={calendarCommand} /> : <PlanDays selectedDay={mapDay} onDayChange={setMapDay} items={items} trip={trip} timezone={settings.timezone} />}</section>}
       {tab === "decisions" && <><DecisionRoom decisions={decisions} unavailable={unavailable.decisions} canVote={canVote} busy={busy} onVote={voteOnDecision} /><section className="wm-panel"><h2>Calendar changes & discussions</h2><Notice tone="error">{unavailable.calendar}</Notice><CalendarDiscussions proposals={calendar?.proposals || []} busy={busy} onCommand={calendarCommand} /></section></>}
-      {tab === "chat" && <ChatRoom messages={messages} members={members} tripTitle={trip.title} unavailable={unavailable.chat} busy={busy} onSend={sendChat} onReviewProposal={() => setTab("decisions")} />}
+      {tab === "chat" && <ChatRoom messages={messages} members={members} tripTitle={trip.title} unavailable={unavailable.chat} busy={busy} trippyThinking={isTrippyThinking(messages)} onSend={sendChat} onReviewProposal={() => setTab("decisions")} />}
       {tab === "people" && <div className="wm-room-grid"><section className="wm-panel"><div className="wm-panel-title"><div><span className="wm-kicker">THE PEOPLE IN THIS PLAN</span><h2>Your travel crew.</h2></div></div>{unavailable.members ? <Notice tone="error">{unavailable.members}</Notice> : members.length === 0 ? <div className="wm-empty wm-empty-small">Member list is coming in…</div> : <div className="wm-member-list">{members.map((member) => <div className="wm-member" key={member.user_id}><span className="wm-avatar">{(member.display_name || "T")[0].toUpperCase()}</span><div><strong>{member.display_name}</strong><small>{member.role?.replace("_", " ")}</small></div></div>)}</div>}</section><aside className="wm-panel"><span className="wm-kicker">BRING SOMEONE ALONG</span><h3>There’s room for more stories.</h3>{isOrganizer(role) ? <><p>Create a private invite. The code is shown once so you can share it with someone you trust.</p><button className="wm-secondary" disabled={busy} onClick={() => mutate(`/trips/${safeId}/invites`, { target_role: "participant", max_uses: 5, expires_at: new Date(Date.now() + 7 * 86400000).toISOString() }, setInvite)}>{busy ? "Creating…" : "+ Create invite"}</button>{invite?.code && <div className="wm-invite-result"><span>Invite code</span><code>{invite.code}</code><button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/app?invite_trip=${encodeURIComponent(tripId)}&code=${encodeURIComponent(invite.code)}`)}>Copy invite link</button></div>}</> : <p>Ask your organizer for an invitation link if you want someone else to join.</p>}{isOrganizer(role) && <div className="wm-request-list"><h4>Join requests</h4>{unavailable.requests ? <small>{unavailable.requests}</small> : requests.length === 0 ? <small>No requests waiting.</small> : requests.map((request) => <div className="wm-request" key={request.request_id}><strong>{request.display_name}</strong><p>{request.introduction}</p><button disabled={busy} onClick={() => mutate(`/join-requests/${encodeURIComponent(request.request_id)}/review`, { trip_id: tripId, decision: "accepted" })}>Accept</button><button disabled={busy} onClick={() => mutate(`/join-requests/${encodeURIComponent(request.request_id)}/review`, { trip_id: tripId, decision: "declined" })}>Decline</button></div>)}</div>}</aside></div>}
       {tab === "memories" && <Memories tripId={tripId} token={token} members={members} />}
       {tab === "history" && <section className="wm-panel"><div className="wm-panel-title"><div><span className="wm-kicker">WHY THE PLAN CHANGED</span><h2>A story you can trace.</h2></div></div>{unavailable.history ? <Notice tone="error">{unavailable.history}</Notice> : history.length === 0 ? <div className="wm-empty wm-empty-small"><h3>Nothing has changed yet.</h3><p>Approved proposals and earlier versions will appear here.</p></div> : <div className="wm-history-list">{history.map((event, index) => { const [title, description] = historyCopy(event); return <article key={event.history_id || event.event_id || index}><span className="wm-history-dot"/><div><strong>{title}</strong><p>{description}</p><small>{event.occurred_at ? readableDate(event.occurred_at) : ""}</small></div></article>; })}</div>}</section>}
@@ -410,6 +411,21 @@ export default function Workspace() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [cityOptions, setCityOptions] = useState(cities);
+  const [genderLoading, setGenderLoading] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [genderError, setGenderError] = useState("");
+
+  const loadGender = useCallback(async () => {
+    if (!session?.access_token) return;
+    setGenderLoading(true);
+    setGenderError("");
+    try {
+      const value = await core("/me/gender-disclosure", { token: session.access_token });
+      setNeedsOnboarding(!value?.onboarding_completed);
+    } catch (caught) { setGenderError(describeError(caught)); }
+    finally { setGenderLoading(false); }
+  }, [session?.access_token]);
+  useEffect(() => { loadGender(); }, [loadGender]);
 
   useEffect(() => {
     if (!auth) return;
@@ -461,6 +477,9 @@ export default function Workspace() {
 
   if (authLoading) return <div className="wm-boot">Opening Convia…</div>;
   if (!session) return <AuthScreen onSession={setSession} />;
+  if (genderLoading) return <div className="wm-boot">Preparing your profile…</div>;
+  if (genderError) return <div className="wm-boot"><div className="wm-notice wm-notice-error" role="alert">{genderError}</div><button className="wm-secondary" onClick={loadGender}>Retry</button></div>;
+  if (needsOnboarding) return <GenderOnboarding token={session.access_token} onComplete={() => { setNeedsOnboarding(false); navigate(null, "discover"); }} />;
   return <div className="workspace">
     <AppHeader session={session} tripId={tripId} view={view} navigate={navigate} />
     {tripId ? <TripRoom key={tripId} tripId={tripId} token={session.access_token} onBack={() => navigate(null)} /> : view === "passport" ? <Passport token={session.access_token} onDiscover={() => navigate(null, "discover")} /> : view === "discover" ? <DiscoverTrips token={session.access_token} cityOptions={cityOptions} onPassport={() => navigate(null, "passport")} onOpenTrip={navigate} /> : <Dashboard trips={trips} loading={tripsLoading} error={error} onRetry={refreshTrips} busy={busy} cityOptions={cityOptions} openTrip={navigate} onCreate={(body) => act("/trips", body, (result) => navigate(result.trip_id))} onJoin={(id, code) => act("/invites/redeem", { trip_id: id, code }, () => navigate(id))} />}

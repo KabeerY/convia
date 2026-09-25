@@ -26,7 +26,9 @@ const configSchema = z.object({
   MEDIA_BUCKET: z.string().default("trip-media-private"),
   FACE_MATCH_THRESHOLD: optionalNumber(0.5).pipe(z.number().min(0).max(1)),
   FACE_MODEL_VERSION: z.string().default("sface-2024"),
-  MEDIA_MAX_UPLOAD_BYTES: optionalNumber(20000000).pipe(z.number().int().positive()),
+  MEDIA_MAX_UPLOAD_BYTES: optionalNumber(20000000).pipe(
+    z.number().int().positive(),
+  ),
 });
 
 export type CoreConfig = z.infer<typeof configSchema>;

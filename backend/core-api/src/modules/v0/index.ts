@@ -1,9 +1,9 @@
+import { Decimal } from "decimal.js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { Decimal } from "decimal.js";
-import { DomainError } from "../../domain.js";
 import { verifyServiceCredential } from "../../auth/service-credentials.js";
 import { readConfig } from "../../config.js";
+import { DomainError } from "../../domain.js";
 import type { CoreModule, DomainPort } from "../../module-contract.js";
 import {
   type GenomeInput,
@@ -39,6 +39,45 @@ const passport = z
       .strict(),
   })
   .strict();
+const genderDisclosure = z
+  .object({
+    gender_identity: z.enum([
+      "woman",
+      "man",
+      "nonbinary",
+      "self_described",
+      "prefer_not_to_say",
+    ]),
+    self_description: z.string().trim().min(1).max(80).nullable().optional(),
+    aggregate_publication: z.boolean(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.gender_identity === "self_described" && !value.self_description) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Add a short self-description.",
+        path: ["self_description"],
+      });
+    }
+    if (value.gender_identity !== "self_described" && value.self_description) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Self-description is only for Self-describe.",
+        path: ["self_description"],
+      });
+    }
+    if (
+      value.gender_identity === "prefer_not_to_say" &&
+      value.aggregate_publication
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Prefer not to say cannot be shared publicly.",
+        path: ["aggregate_publication"],
+      });
+    }
+  });
 const iso = z.iso.datetime({ offset: true });
 const move = z
   .object({
@@ -91,7 +130,10 @@ const fxQuery = z.object({
   to: z.string().regex(/^[A-Z]{3}$/),
   amount: z.string().regex(/^\d{1,9}(?:\.\d{1,2})?$/),
 });
-const fxCache = new Map<string, { expires: number; date: string; rate: string }>();
+const fxCache = new Map<
+  string,
+  { expires: number; date: string; rate: string }
+>();
 type PlanItem = {
   item_id: string;
   title: string;
@@ -200,42 +242,96 @@ export const v0Module: CoreModule = {
   name: "v0-trip-features",
   register(app: FastifyInstance, domain: DomainPort) {
     app.post("/v1/internal/trippy/tool", async (request) => {
-      verifyServiceCredential(readConfig(), "trippy", request.headers["x-trippy-service-token"] as string | undefined);
-      const input = parse(z.object({
-        trip_id: id,
-        user_id: id,
-        action: z.enum(["read_plan", "propose_change"]),
-        draft: trippySuggestionSchema.optional(),
-      }).strict(), request.body);
+      verifyServiceCredential(
+        readConfig(),
+        "trippy",
+        request.headers["x-trippy-service-token"] as string | undefined,
+      );
+      const input = parse(
+        z
+          .object({
+            trip_id: id,
+            user_id: id,
+            action: z.enum(["read_plan", "propose_change"]),
+            draft: trippySuggestionSchema.optional(),
+          })
+          .strict(),
+        request.body,
+      );
       // The model sees only tool arguments. This actor/trip binding comes from
       // the authenticated Core -> Trippy invocation and is checked by SQL again.
-      const context = { actor: { userId: input.user_id, authSubject: "trippy-service" }, requestId: request.id };
+      const context = {
+        actor: { userId: input.user_id, authSubject: "trippy-service" },
+        requestId: request.id,
+      };
       const [snapshot, itinerary] = await Promise.all([
-        domain.query<{ trip: Record<string, unknown>; settings?: { timezone?: string } }>("trip.read", context, input.trip_id),
+        domain.query<{
+          trip: Record<string, unknown>;
+          settings?: { timezone?: string };
+        }>("trip.read", context, input.trip_id),
         domain.query<Itinerary>("itinerary.read", context, input.trip_id),
       ]);
-      if (input.action === "read_plan") return {
-        trip: snapshot.trip,
-        timezone: snapshot.settings?.timezone,
-        itinerary: { version: itinerary.version, items: (itinerary.items || []).slice(0, 60) },
+      if (input.action === "read_plan")
+        return {
+          trip: snapshot.trip,
+          timezone: snapshot.settings?.timezone,
+          itinerary: {
+            version: itinerary.version,
+            items: (itinerary.items || []).slice(0, 60),
+          },
+        };
+      if (!input.draft || input.draft.action === "none")
+        throw new DomainError("TRIPPY_DRAFT_REQUIRED", 400);
+      const decision = await proposalFromTrippy(
+        domain,
+        context,
+        input.trip_id,
+        itinerary,
+        input.draft,
+      );
+      return {
+        change_set_id: decision?.change_set_id,
+        status: "proposed_for_group_vote",
       };
-      if (!input.draft || input.draft.action === "none") throw new DomainError("TRIPPY_DRAFT_REQUIRED", 400);
-      const decision = await proposalFromTrippy(domain, context, input.trip_id, itinerary, input.draft);
-      return { change_set_id: decision?.change_set_id, status: "proposed_for_group_vote" };
     });
     app.get("/v1/me/passport", async (request) =>
       domain.query("v0.passport.read", await domain.resolveContext(request)),
     );
+    app.get("/v1/me/gender-disclosure", async (request) =>
+      domain.query("v0.gender.read", await domain.resolveContext(request)),
+    );
+    app.put("/v1/me/gender-disclosure", async (request) => {
+      const input = parse(genderDisclosure, request.body);
+      return domain.execute(
+        "v0.gender.save",
+        input,
+        await domain.resolveContext(request),
+      );
+    });
     app.get("/v1/catalog/cities", async (request) => ({
-      cities: await domain.query("v0.catalog.cities", await domain.resolveContext(request)),
+      cities: await domain.query(
+        "v0.catalog.cities",
+        await domain.resolveContext(request),
+      ),
     }));
     app.get("/v1/catalog/trips", async (request) => {
       const input = parse(filters, request.query);
-      return { trips: await domain.query("v0.catalog.trips", await domain.resolveContext(request), undefined, input) };
+      return {
+        trips: await domain.query(
+          "v0.catalog.trips",
+          await domain.resolveContext(request),
+          undefined,
+          input,
+        ),
+      };
     });
     app.get("/v1/catalog/trips/:trip_id", async (request) => {
       const { trip_id } = parse(tripParams, request.params);
-      const preview = await domain.query("v0.catalog.trip_preview", await domain.resolveContext(request), trip_id);
+      const preview = await domain.query(
+        "v0.catalog.trip_preview",
+        await domain.resolveContext(request),
+        trip_id,
+      );
       if (!preview) throw new DomainError("TRIP_NOT_FOUND", 404);
       return preview;
     });
@@ -244,24 +340,55 @@ export const v0Module: CoreModule = {
       await domain.resolveContext(request);
       const key = `${from}/${to}`;
       let quote = fxCache.get(key);
-      if (from === to) quote = { date: new Date().toISOString().slice(0, 10), rate: "1", expires: Date.now() + 3600000 };
+      if (from === to)
+        quote = {
+          date: new Date().toISOString().slice(0, 10),
+          rate: "1",
+          expires: Date.now() + 3600000,
+        };
       if (!quote || quote.expires < Date.now()) {
         let response: Response;
         try {
-          response = await fetch(`https://api.frankfurter.dev/v2/rate/${from.toLowerCase()}/${to.toLowerCase()}`, {
-            signal: AbortSignal.timeout(7000),
-          });
+          response = await fetch(
+            `https://api.frankfurter.dev/v2/rate/${from.toLowerCase()}/${to.toLowerCase()}`,
+            {
+              signal: AbortSignal.timeout(7000),
+            },
+          );
         } catch {
-          throw new DomainError("FX_UNAVAILABLE", 503, "Reference exchange rates are temporarily unavailable.");
+          throw new DomainError(
+            "FX_UNAVAILABLE",
+            503,
+            "Reference exchange rates are temporarily unavailable.",
+          );
         }
-        if (!response.ok) throw new DomainError("FX_UNAVAILABLE", 503, "This currency pair is not available.");
-        const value = z.object({ date: z.iso.date(), rate: z.number().positive() }).parse(await response.json());
-        quote = { date: value.date, rate: String(value.rate), expires: Date.now() + 3600000 };
+        if (!response.ok)
+          throw new DomainError(
+            "FX_UNAVAILABLE",
+            503,
+            "This currency pair is not available.",
+          );
+        const value = z
+          .object({ date: z.iso.date(), rate: z.number().positive() })
+          .parse(await response.json());
+        quote = {
+          date: value.date,
+          rate: String(value.rate),
+          expires: Date.now() + 3600000,
+        };
         fxCache.set(key, quote);
       }
       return {
-        from, to, amount, converted: new Decimal(amount).mul(quote.rate).toDecimalPlaces(2).toFixed(2),
-        rate: quote.rate, rate_date: quote.date, source: "Frankfurter / reference rates",
+        from,
+        to,
+        amount,
+        converted: new Decimal(amount)
+          .mul(quote.rate)
+          .toDecimalPlaces(2)
+          .toFixed(2),
+        rate: quote.rate,
+        rate_date: quote.date,
+        source: "Frankfurter / reference rates",
         note: "Indicative only; card, bank and cash rates may differ.",
       };
     });
@@ -377,21 +504,32 @@ export const v0Module: CoreModule = {
     // for it. The sender starts this request after the message is visible.
     app.post("/v1/trips/:trip_id/chat/agent", async (request, reply) => {
       const { trip_id } = parse(tripParams, request.params);
-      const { message_id } = parse(z.object({ message_id: id }).strict(), request.body);
+      const { message_id } = parse(
+        z.object({ message_id: id }).strict(),
+        request.body,
+      );
       const context = await domain.resolveContext(request);
-      const recent = await domain.query<Array<{
-        message_id: string;
-        display_name?: string;
-        content_kind: string;
-        body: string;
-        is_mine?: boolean;
-      }>>("v0.chat.list", context, trip_id);
-      const source = recent.find((message) => message.message_id === message_id);
-      if (!source || !source.is_mine || source.content_kind !== "member" || !/(?:^|\s)@trippy\b/i.test(source.body))
+      const recent = await domain.query<
+        Array<{
+          message_id: string;
+          display_name?: string;
+          content_kind: string;
+          body: string;
+          is_mine?: boolean;
+        }>
+      >("v0.chat.list", context, trip_id);
+      const source = recent.find(
+        (message) => message.message_id === message_id,
+      );
+      if (
+        !source ||
+        !source.is_mine ||
+        source.content_kind !== "member" ||
+        !/(?:^|\s)@trippy\b/i.test(source.body)
+      )
         throw new DomainError("TRIPPY_MESSAGE_REQUIRED", 403);
       {
-        let answer =
-          "Trippy is not configured yet. Please try again shortly.";
+        let answer = "Trippy is not configured yet. Please try again shortly.";
         let change_set_id: string | undefined;
         if (trippyServiceConfigured()) {
           try {
@@ -399,19 +537,30 @@ export const v0Module: CoreModule = {
               .filter((message) => message.message_id !== message_id)
               .slice(-15)
               .map((message) => ({
-                role: message.content_kind === "agent" ? "assistant" as const : "user" as const,
+                role:
+                  message.content_kind === "agent"
+                    ? ("assistant" as const)
+                    : ("user" as const),
                 content: message.body,
-                ...(message.content_kind === "agent" ? {} : { sender_name: message.display_name }),
+                ...(message.content_kind === "agent"
+                  ? {}
+                  : { sender_name: message.display_name }),
               }));
             const query = source.body.replace(/@trippy\b/gi, "").trim();
             if (query) {
-              const result = await askTrippyService(query, history, trip_id, context.actor.userId);
+              const result = await askTrippyService(
+                query,
+                history,
+                trip_id,
+                context.actor.userId,
+              );
               answer = result.answer;
               change_set_id = result.change_set_id || undefined;
             } else answer = "Ask me a question after @trippy and I'll help.";
           } catch (error) {
             request.log.warn(error, "Trippy service failed");
-            answer = "I couldn't answer that just now. Please try again in a moment.";
+            answer =
+              "I couldn't answer that just now. Please try again in a moment.";
           }
         }
         await domain.execute(

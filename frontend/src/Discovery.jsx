@@ -3,12 +3,84 @@ import { core, describeError } from "./lib/api";
 import { cities, cityName } from "./data/cities";
 import { parseTravelContext, travelContextPrompt } from "./lib/contextImport";
 import { GroupGenome } from "./RoomExtras";
+import { genderRepresentationLabel, pendingLabel } from "./lib/representation";
 
 const interests = ["Adventure", "Culture", "Food", "Nature", "Wellness", "Photography", "History", "Nightlife"];
 const blankPassport = { interests: [], pace: "", budget_band: "" };
 
 function Feedback({ error, success }) {
   return <>{error && <div className="wm-notice wm-notice-error" role="alert">{error}</div>}{success && <div className="wm-notice wm-notice-success" role="status">{success}</div>}</>;
+}
+
+const genderOptions = [
+  ["woman", "Woman"],
+  ["man", "Man"],
+  ["nonbinary", "Nonbinary"],
+  ["self_described", "Self-describe"],
+  ["prefer_not_to_say", "Prefer not to say"],
+];
+
+export function GenderOnboarding({ token, onComplete }) {
+  const [identity, setIdentity] = useState("");
+  const [selfDescription, setSelfDescription] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    core("/me/gender-disclosure", { token })
+      .then((value) => {
+        if (!active) return;
+        if (value?.onboarding_completed) {
+          setIdentity(value.gender_identity || "");
+          setSelfDescription(value.self_description || "");
+          setConsent(Boolean(value.aggregate_publication));
+        }
+      })
+      .catch((caught) => { if (active) setError(describeError(caught)); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [token]);
+
+  async function save(event) {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      await core("/me/gender-disclosure", {
+        token,
+        method: "PUT",
+        body: {
+          gender_identity: identity,
+          self_description: identity === "self_described" ? selfDescription.trim() : null,
+          aggregate_publication: identity === "prefer_not_to_say" ? false : consent,
+        },
+      });
+      onComplete?.();
+    } catch (caught) { setError(describeError(caught)); }
+    finally { setSaving(false); }
+  }
+
+  const needsSelf = identity === "self_described";
+  const canSave = Boolean(identity) && (!needsSelf || selfDescription.trim().length > 0);
+
+  if (loading) return <main className="wm-container wm-discovery-page"><div className="wm-empty wm-empty-small">Preparing your profile…</div></main>;
+
+  return <main className="wm-container wm-discovery-page">
+    <div className="wm-page-intro"><span className="wm-kicker">BEFORE YOU EXPLORE</span><h1>How do you describe your gender?</h1><p>This helps show how many women are in each group. Only your choice plus a separate opt-in ever contributes to those counts.</p></div>
+    <section className="wm-panel wm-discovery-panel">
+      <form className="wm-form" onSubmit={save}>
+        <div><span className="wm-kicker">YOUR GENDER IDENTITY</span><h2>Choose one. You can always choose Prefer not to say.</h2><div className="wm-chip-grid">{genderOptions.map(([value, label]) => <button type="button" key={value} aria-pressed={identity === value} className={`wm-choice-chip ${identity === value ? "selected" : ""}`} onClick={() => { setIdentity(value); if (value === "prefer_not_to_say") setConsent(false); }}>{label}</button>)}</div></div>
+        {needsSelf && <label>Self-description<input value={selfDescription} maxLength={80} placeholder="How would you like to describe it?" onChange={(e) => setSelfDescription(e.target.value)} required /></label>}
+        <label className="wm-consent-row"><input type="checkbox" checked={consent} disabled={identity === "prefer_not_to_say" || !identity} onChange={(e) => setConsent(e.target.checked)} /> Include my gender in anonymous counts on public trip cards. My individual answer is never shown.</label>
+        <small className="wm-form-hint">Only Woman + this opt-in counts toward the women number. Self-describe text never does.</small>
+        <Feedback error={error} />
+        <div className="wm-form-actions"><button className="wm-primary" disabled={saving || !canSave}>{saving ? "Saving…" : "Continue to Discover →"}</button></div>
+      </form>
+    </section>
+  </main>;
 }
 
 export function Passport({ token, onDiscover }) {
@@ -22,11 +94,16 @@ export function Passport({ token, onDiscover }) {
   const [importSuggestion, setImportSuggestion] = useState(null);
   const [importError, setImportError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+  const [genderIdentity, setGenderIdentity] = useState("");
+  const [genderSelf, setGenderSelf] = useState("");
+  const [genderConsent, setGenderConsent] = useState(false);
+  const [genderSaving, setGenderSaving] = useState(false);
+  const [genderMessage, setGenderMessage] = useState("");
 
   useEffect(() => {
     let active = true;
-    core("/me/passport", { token })
-      .then((value) => {
+    Promise.all([
+      core("/me/passport", { token }).then((value) => {
         if (!active) return;
         const fields = value?.confirmed_fields || value?.passport?.confirmed_fields || {};
         setForm({
@@ -34,7 +111,16 @@ export function Passport({ token, onDiscover }) {
           pace: fields.pace || "",
           budget_band: fields.budget_band || "",
         });
-      })
+      }),
+      core("/me/gender-disclosure", { token }).then((value) => {
+        if (!active) return;
+        if (value?.onboarding_completed) {
+          setGenderIdentity(value.gender_identity || "");
+          setGenderSelf(value.self_description || "");
+          setGenderConsent(Boolean(value.aggregate_publication));
+        }
+      }).catch(() => {}),
+    ])
       .catch((caught) => { if (active) setError(describeError(caught)); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -93,6 +179,7 @@ export function Passport({ token, onDiscover }) {
         <div><span className="wm-kicker">01 · THE THINGS YOU LOVE</span><h2>What makes a trip yours?</h2><div className="wm-chip-grid">{interests.map((item) => <button type="button" key={item} aria-pressed={form.interests.includes(item)} className={`wm-choice-chip ${form.interests.includes(item) ? "selected" : ""}`} onClick={() => toggleInterest(item)}>{item}</button>)}</div></div>
         <div><span className="wm-kicker">02 · YOUR PACE</span><h2>How do you like the day to feel?</h2><div className="wm-choice-grid">{[["relaxed", "No rush", "Slow mornings and room to wander."], ["balanced", "A little of both", "A plan, with space for surprises."], ["active", "Keep moving", "Make the most of every day."]].map(([value, title, detail]) => <button type="button" key={value} aria-pressed={form.pace === value} className={`wm-choice-card ${form.pace === value ? "selected" : ""}`} onClick={() => setForm((current) => ({ ...current, pace: current.pace === value ? "" : value }))}><strong>{title}</strong><small>{detail}</small></button>)}</div></div>
         <div><span className="wm-kicker">03 · COMFORT ZONE</span><h2>What kind of spend feels right?</h2><div className="wm-chip-grid">{[["shoestring", "Shoestring"], ["value", "Good value"], ["mid", "Mid-range"], ["premium", "Premium"], ["luxury", "Luxury"]].map(([value, label]) => <button type="button" key={value} aria-pressed={form.budget_band === value} className={`wm-choice-chip ${form.budget_band === value ? "selected" : ""}`} onClick={() => setForm((current) => ({ ...current, budget_band: current.budget_band === value ? "" : value }))}>{label}</button>)}</div></div>
+        <div className="wm-gender-section"><span className="wm-kicker">04 · GENDER & PRIVACY</span><h2>How do you describe your gender?</h2><p className="wm-form-hint">Only Woman + the opt-in below counts toward the women count on Discover. This is required once, but Prefer not to say is always available.</p><div className="wm-chip-grid">{genderOptions.map(([value, label]) => <button type="button" key={value} aria-pressed={genderIdentity === value} className={`wm-choice-chip ${genderIdentity === value ? "selected" : ""}`} onClick={() => { setGenderIdentity(value); if (value === "prefer_not_to_say") setGenderConsent(false); }}>{label}</button>)}</div>{genderIdentity === "self_described" && <label>Self-description<input value={genderSelf} maxLength={80} placeholder="How would you like to describe it?" onChange={(e) => setGenderSelf(e.target.value)} /></label>}<label className="wm-consent-row"><input type="checkbox" checked={genderConsent} disabled={genderIdentity === "prefer_not_to_say" || !genderIdentity} onChange={(e) => setGenderConsent(e.target.checked)} /> Include my gender in anonymous counts on public trip cards.</label>{genderMessage && <div className="wm-notice wm-notice-success" role="status">{genderMessage}</div>}<button type="button" className="wm-secondary" disabled={genderSaving || !genderIdentity || (genderIdentity === "self_described" && !genderSelf.trim())} onClick={async () => { setGenderSaving(true); setGenderMessage(""); try { await core("/me/gender-disclosure", { token, method: "PUT", body: { gender_identity: genderIdentity, self_description: genderIdentity === "self_described" ? genderSelf.trim() : null, aggregate_publication: genderIdentity === "prefer_not_to_say" ? false : genderConsent } }); setGenderMessage("Gender & privacy saved."); } catch (caught) { setError(describeError(caught)); } finally { setGenderSaving(false); } }}>{genderSaving ? "Saving…" : "Save gender & privacy"}</button></div>
         <Feedback error={error} success={success} />
         <div className="wm-form-actions"><button className="wm-primary" disabled={saving}>{saving ? "Saving…" : "Save my Passport →"}</button><button type="button" className="wm-text-button" onClick={onDiscover}>Explore without it</button></div>
       </form>}
@@ -249,7 +336,7 @@ export function DiscoverTrips({ token, cityOptions = cities, onOpenTrip, onPassp
     <div className="wm-discover-kind" role="group" aria-label="What to discover"><button type="button" className={kind === "groups" ? "active" : ""} onClick={() => { setKind("groups"); search(null, "groups"); }}>Open groups</button><button type="button" className={kind === "samples" ? "active" : ""} onClick={() => { setKind("samples"); search(null, "samples"); }}>Trip inspiration</button><button type="button" className={kind === "guides" ? "active" : ""} onClick={() => { setKind("guides"); search(null, "guides"); }}>Find guides</button></div>
     <form className="wm-panel wm-discover-filters" onSubmit={search}><label>Where to?<select value={cityId} onChange={(event) => setCityId(event.target.value)}><option value="">Anywhere</option>{cityOptions.map((city) => <option key={city.id} value={city.id}>{city.name}, {city.country || city.region}</option>)}</select></label>{kind !== "guides" && <label>Starting from<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>}<button className="wm-primary" disabled={loading}>{loading ? "Looking…" : kind === "groups" ? "Find open trips →" : kind === "samples" ? "Explore sample trips →" : "Find sample guides →"}</button></form>
     <Feedback error={error} />
-    {kind === "guides" ? <><p className="wm-sample-disclosure">These are sample guide profiles from the supplied synthetic WanderMatch dataset—not verified bookable guides.</p>{loading ? <div className="wm-empty">Finding guide profiles…</div> : searched && !error && guides.length === 0 ? <div className="wm-empty"><h3>No sample guides found here.</h3><p>Try a different destination.</p></div> : <><div className="wm-discover-grid">{[...guides].sort((a, b) => Number(guideAnchor(b, passportFields) !== "") - Number(guideAnchor(a, passportFields) !== "") || Number(b.rating || 0) - Number(a.rating || 0)).slice(0, visibleGuides).map((guide) => <article className="wm-panel wm-discover-card wm-guide-card" key={guide.guide_id}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(guide.city_id)} · {guide.specialisation}</span>{guideAnchor(guide, passportFields) && <strong className="wm-fit-label">{guideAnchor(guide, passportFields)}</strong>}</div><h2>{guide.display_name}</h2><p>{guide.bio}</p><div className="wm-discover-detail">{guide.rating ? `${guide.rating} / 5 · ` : ""}{guide.years_experience} years experience · {guide.languages}</div><div className="wm-match-reasons"><span>{guide.currency} {Number(guide.half_day_rate).toLocaleString("en-IN")} half day</span><span>{guide.currency} {Number(guide.day_rate).toLocaleString("en-IN")} full day</span></div><small>Sample profile · no booking in Convia</small></article>)}</div>{visibleGuides < guides.length && <button className="wm-secondary wm-more-guides" onClick={() => setVisibleGuides((count) => count + 12)}>Show more sample guides →</button>}</>}</> : kind === "samples" ? <><p className="wm-sample-disclosure">{sampleTrips.length} trip records from the supplied synthetic WanderMatch dataset. For inspiration only; these are not live or joinable groups, and recorded costs are not current prices.</p>{loading ? <div className="wm-empty">Opening the trip catalogue…</div> : <><div className="wm-discover-grid">{sampleTrips.slice(0, visibleSamples).map((trip) => <article className="wm-panel wm-discover-card" key={trip.trip_id}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(trip.destination_city_id)}</span><strong className="wm-fit-label">Sample</strong></div><h2>{trip.title}</h2><p>{trip.is_group_trip ? "Group itinerary from the supplied dataset." : "Traveller itinerary from the supplied dataset."}</p><div className="wm-discover-detail">{String(trip.start_date).slice(0, 10)} · {trip.status} · {trip.budget?.amount ? money(trip.budget.amount, trip.budget.currency) : "Budget not set"}</div><div className="wm-card-actions"><button className="wm-secondary" onClick={() => viewSampleTrip(trip.trip_id)}>View trip</button></div></article>)}</div>{visibleSamples < sampleTrips.length && <button className="wm-secondary wm-more-guides" onClick={() => setVisibleSamples((count) => count + 18)}>Show more trips →</button>}</>}</> : loading ? <div className="wm-empty">Finding groups with room for you…</div> : searched && !error && results.length === 0 ? <div className="wm-empty"><h3>No open trips found yet.</h3><p>Try another destination or date, or start a trip of your own.</p></div> : <div className="wm-discover-grid">{results.map((candidate, index) => { const trip = candidateTrip(candidate); const id = trip.trip_id; const reasons = candidate.match_reasons || candidate.reasons || []; const score = scoreLabel(candidate); return <article className="wm-panel wm-discover-card" key={id || index}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(trip.destination_city_id)}</span>{score && <strong className="wm-fit-label">{score}</strong>}</div><h2>{trip.title}</h2><p>{trip.description || "A group trip with a place for new stories."}</p><div className="wm-discover-detail">{trip.start_date ? new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(new Date(`${String(trip.start_date).slice(0, 10)}T12:00:00`)) : "Dates open"}{trip.capacity ? ` · Up to ${trip.capacity} travellers` : ""}</div>{Array.isArray(reasons) && reasons.length > 0 && <div className="wm-match-reasons">{reasons.slice(0, 3).map((reason, reasonIndex) => <span key={reasonIndex}>{typeof reason === "string" ? reason : reason.label || reason.reason}</span>)}</div>}<div className="wm-card-actions">{id && <button className="wm-secondary" onClick={() => viewPublicTrip(id)}>View trip</button>}{id && <button className="wm-primary" disabled={requesting === id || Boolean(requested[id])} onClick={() => askToJoin(id)}>{requesting === id ? "Sending…" : requested[id] === "accepted" ? "Joined" : requested[id] ? "Request sent" : "Ask to join →"}</button>}</div></article>; })}</div>}
-    {preview && <div className="wm-preview-backdrop" role="presentation" onClick={() => setPreview(null)}><section className="wm-preview-dialog wm-panel" role="dialog" aria-modal="true" aria-label="Trip preview" onClick={(event) => event.stopPropagation()}><button className="wm-icon-button" aria-label="Close preview" onClick={() => setPreview(null)}>×</button>{previewLoading ? <div className="wm-empty wm-empty-small">Opening this trip…</div> : previewError ? <Feedback error={previewError} /> : <><span className="wm-kicker">{preview.sample_only ? "SAMPLE ITINERARY" : "OPEN GROUP"} · {cityName((preview.trip || preview).destination_city_id)}</span><h2>{(preview.trip || preview).title}</h2><p>{(preview.trip || preview).description || (preview.sample_only ? "An itinerary from the supplied synthetic dataset. For inspiration only—not a bookable group." : "Meet the group, explore the plan, and see whether this feels like your kind of journey.")}</p><TripBudget key={(preview.trip || preview).trip_id} token={token} preview={preview} />{preview.genome && <GroupGenome genome={preview.genome} />}{Array.isArray(preview.itinerary_preview) && preview.itinerary_preview.length > 0 && <div className="wm-preview-items"><strong>A glimpse of the plan</strong>{preview.itinerary_preview.slice(0, 5).map((item, index) => <span key={item.item_id || index}>{item.title}</span>)}</div>}<div className="wm-card-actions">{!preview.sample_only && <button className="wm-primary" disabled={requesting === (preview.trip || preview).trip_id || Boolean(requested[(preview.trip || preview).trip_id])} onClick={() => askToJoin((preview.trip || preview).trip_id)}>{requested[(preview.trip || preview).trip_id] ? "Request sent" : "Ask to join →"}</button>}<button className="wm-secondary" onClick={() => setPreview(null)}>Keep exploring</button></div></>}</section></div>}
+    {kind === "guides" ? <><p className="wm-sample-disclosure">These are sample guide profiles from the supplied synthetic WanderMatch dataset—not verified bookable guides.</p>{loading ? <div className="wm-empty">Finding guide profiles…</div> : searched && !error && guides.length === 0 ? <div className="wm-empty"><h3>No sample guides found here.</h3><p>Try a different destination.</p></div> : <><div className="wm-discover-grid">{[...guides].sort((a, b) => Number(guideAnchor(b, passportFields) !== "") - Number(guideAnchor(a, passportFields) !== "") || Number(b.rating || 0) - Number(a.rating || 0)).slice(0, visibleGuides).map((guide) => <article className="wm-panel wm-discover-card wm-guide-card" key={guide.guide_id}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(guide.city_id)} · {guide.specialisation}</span>{guideAnchor(guide, passportFields) && <strong className="wm-fit-label">{guideAnchor(guide, passportFields)}</strong>}</div><h2>{guide.display_name}</h2><p>{guide.bio}</p><div className="wm-discover-detail">{guide.rating ? `${guide.rating} / 5 · ` : ""}{guide.years_experience} years experience · {guide.languages}</div><div className="wm-match-reasons"><span>{guide.currency} {Number(guide.half_day_rate).toLocaleString("en-IN")} half day</span><span>{guide.currency} {Number(guide.day_rate).toLocaleString("en-IN")} full day</span></div><small>Sample profile · no booking in Convia</small></article>)}</div>{visibleGuides < guides.length && <button className="wm-secondary wm-more-guides" onClick={() => setVisibleGuides((count) => count + 12)}>Show more sample guides →</button>}</>}</> : kind === "samples" ? <><p className="wm-sample-disclosure">{sampleTrips.length} trip records from the supplied synthetic WanderMatch dataset. For inspiration only; these are not live or joinable groups, and recorded costs are not current prices.</p>{loading ? <div className="wm-empty">Opening the trip catalogue…</div> : <><div className="wm-discover-grid">{sampleTrips.slice(0, visibleSamples).map((trip) => <article className="wm-panel wm-discover-card" key={trip.trip_id}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(trip.destination_city_id)}</span><strong className="wm-fit-label">Sample</strong></div><h2>{trip.title}</h2><p>{trip.is_group_trip ? "Group itinerary from the supplied dataset." : "Traveller itinerary from the supplied dataset."}</p><div className="wm-discover-detail">{String(trip.start_date).slice(0, 10)} · {trip.status} · {trip.budget?.amount ? money(trip.budget.amount, trip.budget.currency) : "Budget not set"}</div><div className="wm-card-actions"><button className="wm-secondary" onClick={() => viewSampleTrip(trip.trip_id)}>View trip</button></div></article>)}</div>{visibleSamples < sampleTrips.length && <button className="wm-secondary wm-more-guides" onClick={() => setVisibleSamples((count) => count + 18)}>Show more trips →</button>}</>}</> : loading ? <div className="wm-empty">Finding groups with room for you…</div> : searched && !error && results.length === 0 ? <div className="wm-empty"><h3>No open trips found yet.</h3><p>Try another destination or date, or start a trip of your own.</p></div> : <div className="wm-discover-grid">{results.map((candidate, index) => { const trip = candidateTrip(candidate); const id = trip.trip_id; const reasons = candidate.match_reasons || candidate.reasons || []; const score = scoreLabel(candidate); const repLabel = genderRepresentationLabel(candidate.gender_representation); const pendingText = pendingLabel(candidate.gender_representation); return <article className="wm-panel wm-discover-card" key={id || index}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(trip.destination_city_id)}</span>{score && <strong className="wm-fit-label">{score}</strong>}</div><h2>{trip.title}</h2><p>{trip.description || "A group trip with a place for new stories."}</p><div className="wm-discover-detail">{trip.start_date ? new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(new Date(`${String(trip.start_date).slice(0, 10)}T12:00:00`)) : "Dates open"}{trip.capacity ? ` · Up to ${trip.capacity} travellers` : ""}</div>{repLabel && <div className="wm-representation"><span className="wm-kicker">WOMEN IN THIS GROUP</span><strong>{repLabel}</strong>{pendingText && <small>{pendingText}</small>}</div>}{Array.isArray(reasons) && reasons.length > 0 && <div className="wm-match-reasons">{reasons.slice(0, 3).map((reason, reasonIndex) => <span key={reasonIndex}>{typeof reason === "string" ? reason : reason.label || reason.reason}</span>)}</div>}<div className="wm-card-actions">{id && <button className="wm-secondary" onClick={() => viewPublicTrip(id)}>View trip</button>}{id && <button className="wm-primary" disabled={requesting === id || Boolean(requested[id])} onClick={() => askToJoin(id)}>{requesting === id ? "Sending…" : requested[id] === "accepted" ? "Joined" : requested[id] ? "Request sent" : "Ask to join →"}</button>}</div></article>; })}</div>}
+    {preview && <div className="wm-preview-backdrop" role="presentation" onClick={() => setPreview(null)}><section className="wm-preview-dialog wm-panel" role="dialog" aria-modal="true" aria-label="Trip preview" onClick={(event) => event.stopPropagation()}><button className="wm-icon-button" aria-label="Close preview" onClick={() => setPreview(null)}>×</button>{previewLoading ? <div className="wm-empty wm-empty-small">Opening this trip…</div> : previewError ? <Feedback error={previewError} /> : <><span className="wm-kicker">{preview.sample_only ? "SAMPLE ITINERARY" : "OPEN GROUP"} · {cityName((preview.trip || preview).destination_city_id)}</span><h2>{(preview.trip || preview).title}</h2><p>{(preview.trip || preview).description || (preview.sample_only ? "An itinerary from the supplied synthetic dataset. For inspiration only—not a bookable group." : "Meet the group, explore the plan, and see whether this feels like your kind of journey.")}</p>{!preview.sample_only && preview.gender_representation && <div className="wm-representation"><span className="wm-kicker">WOMEN IN THIS GROUP</span><strong>{genderRepresentationLabel(preview.gender_representation)}</strong><small>Only members who opted to share this count are included. Pending requests are not counted.</small>{pendingLabel(preview.gender_representation) && <small>{pendingLabel(preview.gender_representation)}</small>}</div>}<TripBudget key={(preview.trip || preview).trip_id} token={token} preview={preview} />{preview.genome && <GroupGenome genome={preview.genome} />}{Array.isArray(preview.itinerary_preview) && preview.itinerary_preview.length > 0 && <div className="wm-preview-items"><strong>A glimpse of the plan</strong>{preview.itinerary_preview.slice(0, 5).map((item, index) => <span key={item.item_id || index}>{item.title}</span>)}</div>}<div className="wm-card-actions">{!preview.sample_only && <button className="wm-primary" disabled={requesting === (preview.trip || preview).trip_id || Boolean(requested[(preview.trip || preview).trip_id])} onClick={() => askToJoin((preview.trip || preview).trip_id)}>{requested[(preview.trip || preview).trip_id] ? "Request sent" : "Ask to join →"}</button>}<button className="wm-secondary" onClick={() => setPreview(null)}>Keep exploring</button></div></>}</section></div>}
   </main>;
 }

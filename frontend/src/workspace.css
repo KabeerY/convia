@@ -272,6 +272,21 @@
 .wm-chat-markdown strong { font-weight: 750; }
 .wm-chat-proposal-link { display: inline-flex; gap: 12px; margin-top: 12px; padding: 9px 12px; border: 1px solid #c7a78f; border-radius: 9px; background: #fffaf3; color: #8b4d36; font-size: 12px; font-weight: 800; }
 .wm-chat-proposal-link:hover { background: #f1ddcb; }
+.wm-chat-thinking { display: flex; align-items: flex-end; gap: 10px; max-width: min(82%, 630px); }
+.wm-chat-thinking-avatar { position: relative; overflow: hidden; background: #dbe6d9; color: #497463; animation: wm-trippy-breathe 2.4s ease-in-out infinite; }
+.wm-chat-thinking-avatar::after { position: absolute; inset: -8px; border: 1px solid #7da28e73; border-radius: 50%; content: ""; animation: wm-trippy-orbit 2.8s linear infinite; }
+.wm-chat-thinking-card { display: grid; grid-template-columns: auto minmax(0, auto) auto; align-items: baseline; gap: 7px; min-width: min(360px, calc(100vw - 120px)); padding: 12px 16px 13px; overflow: hidden; border: 1px solid #c8d7cb; border-radius: 17px 17px 17px 4px; background: linear-gradient(120deg, #f7f0e6 0%, #edf3eb 50%, #f7f0e6 100%); background-size: 220% 100%; box-shadow: 0 8px 24px #40584a12; animation: wm-trippy-wash 4s ease-in-out infinite; }
+.wm-chat-thinking-label { color: #668071; font-family: "DM Sans", sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .13em; white-space: nowrap; }
+.wm-chat-thinking-copy { color: #30483c; font-family: "Instrument Serif", Georgia, serif; font-size: 20px; font-weight: 400; line-height: 1; animation: wm-trippy-thought .42s ease both; }
+.wm-chat-thinking-dots { display: inline-flex; align-items: center; gap: 3px; margin-left: 2px; }
+.wm-chat-thinking-dots i { width: 4px; height: 4px; border-radius: 50%; background: #6d8979; animation: wm-trippy-dot 1.25s ease-in-out infinite; }
+.wm-chat-thinking-dots i:nth-child(2) { animation-delay: .16s; }
+.wm-chat-thinking-dots i:nth-child(3) { animation-delay: .32s; }
+@keyframes wm-trippy-breathe { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 #789a8840; } 50% { transform: scale(1.06); box-shadow: 0 0 0 7px #789a8800; } }
+@keyframes wm-trippy-orbit { to { transform: rotate(360deg); } }
+@keyframes wm-trippy-wash { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes wm-trippy-thought { from { opacity: 0; transform: translateY(5px); filter: blur(3px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+@keyframes wm-trippy-dot { 0%, 55%, 100% { opacity: .3; transform: translateY(0); } 25% { opacity: 1; transform: translateY(-3px); } }
 .wm-chat-welcome { display: grid; justify-items: center; align-content: center; flex: 1; gap: 11px; padding: 35px; text-align: center; }
 .wm-chat-welcome-symbol { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 21px; background: #e8d2c4; color: #ac6349; font-size: 35px; }
 .wm-chat-welcome h3 { font-family: "Instrument Serif", Georgia, serif; font-size: 38px; font-weight: 400; }
@@ -291,6 +306,8 @@
 .wm-genome-card p { margin: 0; color: #756b61; font-size: 13px; line-height: 1.5; }
 
 @media (max-width: 700px) { .wm-calendar-guide { flex-direction: column; } .wm-genome-grid { grid-template-columns: 1fr; } .wm-chat-row { max-width: 94%; } .wm-chat-header { padding: 17px; } .wm-chat-avatars { display: none; } .wm-chat-compose-area { padding: 13px; } .wm-chat-compose-footer > span { display: none; } }
+@media (max-width: 700px) { .wm-chat-thinking { max-width: 100%; } .wm-chat-thinking-card { grid-template-columns: auto 1fr auto; min-width: 0; } }
+@media (prefers-reduced-motion: reduce) { .wm-chat-thinking-avatar, .wm-chat-thinking-avatar::after, .wm-chat-thinking-card, .wm-chat-thinking-copy, .wm-chat-thinking-dots i { animation: none; } }
 
 .wm-header-navigation { display: contents; }
 .wm-menu-toggle { display: none; }

@@ -80,11 +80,27 @@ const migrations = [
   },
   {
     name: "0020_rematch_photos_on_reference_enroll",
-    path: resolve(dataRoot, "migrations/0020_rematch_photos_on_reference_enroll.sql"),
+    path: resolve(
+      dataRoot,
+      "migrations/0020_rematch_photos_on_reference_enroll.sql",
+    ),
   },
-  { name: "0021_map_locations", path: resolve(dataRoot, "migrations/0021_map_locations.sql") },
-  { name: "0022_catalog", path: resolve(dataRoot, "migrations/0022_catalog.sql") },
-  { name: "0023_trip_budget_catalog", path: resolve(dataRoot, "migrations/0023_trip_budget_catalog.sql") },
+  {
+    name: "0021_map_locations",
+    path: resolve(dataRoot, "migrations/0021_map_locations.sql"),
+  },
+  {
+    name: "0022_catalog",
+    path: resolve(dataRoot, "migrations/0022_catalog.sql"),
+  },
+  {
+    name: "0023_trip_budget_catalog",
+    path: resolve(dataRoot, "migrations/0023_trip_budget_catalog.sql"),
+  },
+  {
+    name: "0024_profile_gender_disclosure",
+    path: resolve(dataRoot, "migrations/0024_profile_gender_disclosure.sql"),
+  },
 ];
 
 async function main() {

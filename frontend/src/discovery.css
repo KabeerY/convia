@@ -65,6 +65,14 @@
 .wm-preview-budget > small, .wm-preview-budget p small { color: #74695f; font-size: 12px; line-height: 1.5; }
 .wm-preview-budget p { margin: 7px 0 0; color: #426650; font-size: 15px; font-weight: 700; line-height: 1.6; }
 .wm-app-header nav button[aria-current="page"] { color: #aa553e; text-decoration: underline; text-underline-offset: 8px; }
+.wm-representation { display: grid; gap: 4px; margin: 12px 0 14px; padding: 12px 14px; border: 1px solid #d9c9b8; border-radius: 12px; background: #fffdf9; }
+.wm-representation .wm-kicker { color: #a55d45; }
+.wm-representation strong { color: #2f3d36; font-size: 13px; line-height: 1.4; }
+.wm-representation small { color: #74695f; font-size: 11px; line-height: 1.4; }
+.wm-gender-section { display: grid; gap: 14px; padding: 18px; border: 1px solid #d9c9b8; border-radius: 14px; background: #fffdf9; }
+.wm-form .wm-consent-row { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; }
+.wm-form .wm-consent-row input[type="checkbox"] { flex: 0 0 18px; width: 18px; min-height: 18px; height: 18px; margin: 1px 0 0; padding: 0; border-radius: 4px; accent-color: #476f62; }
+.wm-form-hint { color: #74695f; font-size: 12px; line-height: 1.5; }
 @media (max-width: 900px) {
   .wm-choice-grid { grid-template-columns: 1fr; }
   .wm-discover-intro { align-items: start; flex-direction: column; }

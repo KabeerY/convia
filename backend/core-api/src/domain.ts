@@ -44,6 +44,7 @@ const commandNames = new Set([
   "media.job_claim",
   "media.job_complete",
   "v0.passport.save",
+  "v0.gender.save",
   "v0.chat.send",
   "v0.change.propose",
 ]);
@@ -68,6 +69,7 @@ const queryNames = new Set([
   "history.list",
   "item.read",
   "v0.passport.read",
+  "v0.gender.read",
   "v0.discover.list",
   "v0.catalog.cities",
   "v0.catalog.guides",
@@ -84,7 +86,11 @@ function translate(error: unknown): never {
   if (error instanceof DomainError) throw error;
   const message = error instanceof Error ? error.message : String(error);
   if (/EMAXCONNSESSION|max clients reached|too many clients/i.test(message))
-    throw new DomainError("TRIP_SERVICE_BUSY", 503, "The trip service is briefly busy. Please retry.");
+    throw new DomainError(
+      "TRIP_SERVICE_BUSY",
+      503,
+      "The trip service is briefly busy. Please retry.",
+    );
   if (/^[A-Z_]+$/.test(message)) {
     const forbidden = /FORBIDDEN|REQUIRED|REMOVED_MEMBER|ADMISSION_CLOSED/.test(
       message,
@@ -265,6 +271,7 @@ export function createDomain(
       !queryNames.has(name) ||
       (name !== "trip.list" &&
         name !== "v0.passport.read" &&
+        name !== "v0.gender.read" &&
         name !== "v0.discover.list" &&
         name !== "v0.catalog.cities" &&
         name !== "v0.catalog.guides" &&
@@ -294,7 +301,9 @@ export function createDomain(
                   name === "item.read"
                 ? "SELECT wm_decision_query($1,$2,$3) AS value"
                 : "SELECT wm_trip_query($1,$2,$3) AS value",
-        name.startsWith("v0.") || name.startsWith("media.") || name.startsWith("face.")
+        name.startsWith("v0.") ||
+          name.startsWith("media.") ||
+          name.startsWith("face.")
           ? [
               actor.userId,
               name,
