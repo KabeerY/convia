@@ -134,23 +134,25 @@ function TripBudget({ token, preview }) {
   const viewerCurrency = preview.viewer_currency || "INR";
   const hasBudget = budget.amount != null && Number(budget.amount) > 0;
   const from = hasBudget ? budget.currency : destinationCurrency;
+  const to = destinationCurrency && destinationCurrency !== from ? destinationCurrency
+    : viewerCurrency !== from ? viewerCurrency : null;
   const amount = hasBudget ? String(budget.amount) : "1";
 
   useEffect(() => {
     setQuote(null); setRateError("");
-    if (!from || !viewerCurrency) return;
+    if (!from || !to) return;
     let active = true;
-    core(`/fx/convert?${new URLSearchParams({ from, to: viewerCurrency, amount })}`, { token })
+    core(`/fx/convert?${new URLSearchParams({ from, to, amount })}`, { token })
       .then((value) => { if (active) setQuote(value); })
       .catch(() => { if (active) setRateError("Reference rate unavailable right now."); });
     return () => { active = false; };
-  }, [token, from, viewerCurrency, amount]);
+  }, [token, from, to, amount]);
 
   return <div className="wm-preview-budget">
     <span className="wm-kicker">TRIP BUDGET</span>
     {hasBudget ? <div className="wm-budget-amounts">
       <div><small>ORIGINAL · {budget.currency}</small><strong>{money(budget.amount, budget.currency)}</strong></div>
-      {quote && <div><small>YOUR CURRENCY · {quote.to}</small><strong>≈ {money(quote.converted, quote.to)}</strong></div>}
+      {quote && <div><small>{quote.to === destinationCurrency ? "DESTINATION CURRENCY" : "YOUR CURRENCY"} · {quote.to}</small><strong>≈ {money(quote.converted, quote.to)}</strong></div>}
     </div> : <strong>Budget not set</strong>}
     <small>{hasBudget ? "Recorded itinerary total · indicative, not a quote" : "No amount recorded for this itinerary."}</small>
     {quote && <p>{!hasBudget && `1 ${quote.from} ≈ ${money(quote.converted, quote.to)}`}<small>{!hasBudget ? <br /> : null}Reference rate {quote.rate_date} · Frankfurter. Bank/card rates may differ.</small></p>}
