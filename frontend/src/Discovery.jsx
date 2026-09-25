@@ -148,9 +148,12 @@ function TripBudget({ token, preview }) {
 
   return <div className="wm-preview-budget">
     <span className="wm-kicker">TRIP BUDGET</span>
-    <strong>{hasBudget ? money(budget.amount, budget.currency) : "Budget not set"}</strong>
+    {hasBudget ? <div className="wm-budget-amounts">
+      <div><small>ORIGINAL · {budget.currency}</small><strong>{money(budget.amount, budget.currency)}</strong></div>
+      {quote && <div><small>YOUR CURRENCY · {quote.to}</small><strong>≈ {money(quote.converted, quote.to)}</strong></div>}
+    </div> : <strong>Budget not set</strong>}
     <small>{hasBudget ? "Recorded itinerary total · indicative, not a quote" : "No amount recorded for this itinerary."}</small>
-    {quote && <p>{hasBudget ? `≈ ${money(quote.converted, quote.to)} in your home currency` : `1 ${quote.from} ≈ ${money(quote.converted, quote.to)}`}<br /><small>Reference rate {quote.rate_date} · Frankfurter. Bank/card rates may differ.</small></p>}
+    {quote && <p>{!hasBudget && `1 ${quote.from} ≈ ${money(quote.converted, quote.to)}`}<small>{!hasBudget ? <br /> : null}Reference rate {quote.rate_date} · Frankfurter. Bank/card rates may differ.</small></p>}
     {rateError && <small>{rateError}</small>}
   </div>;
 }
