@@ -316,9 +316,9 @@ export default function PlanCalendar({
         ? {
             type: "proposal",
             proposalId: item.proposal.proposal_id,
-            anchor: anchor(e),
+            anchor: e ? anchor(e) : null,
           }
-        : { type: "detail", itemId: item.item_id, anchor: anchor(e) },
+        : { type: "detail", itemId: item.item_id, anchor: e ? anchor(e) : null },
     );
   }
   const recommendations = (
@@ -408,7 +408,7 @@ export default function PlanCalendar({
           </button>
         ))}
       </div>
-      {view === 'map' && <TripMap items={normalized} pending={pending} branches={allBranches} day={day} timezone={timezone} onOpen={openActivity}/>}
+      {view === 'map' && <TripMap items={normalized} pending={pending} branches={allBranches} day={day} timezone={timezone} trip={trip} onOpen={openActivity}/>}
       <div style={view === 'map' ? {display:'none'} : undefined} className={`cc-workspace ${ideas && !mobile ? "with-ideas" : ""}`}>
         <div
           ref={scrollRef}
@@ -1338,7 +1338,7 @@ function ActivityForm({
           ))}
         </select>
       </label>
-      <LocationPicker tripId={trip.trip_id} label={location} onLabel={setLocation} value={coordinates} onChange={setCoordinates}/>
+      <LocationPicker tripId={trip.trip_id} cityId={trip.destination_city_id} label={location} onLabel={setLocation} value={coordinates} onChange={setCoordinates}/>
       <label>
         Notes
         <textarea
