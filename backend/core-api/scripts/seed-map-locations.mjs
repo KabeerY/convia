@@ -7,6 +7,13 @@ const places=[
  ['Ellora morning','Ellora Caves',20.0267525,75.1775152,'https://www.openstreetmap.org/way/115566920'],
  ['Colaba neighbourhood walk','Colaba · area pin; confirm starting point',18.9150910,72.8259691,'https://www.openstreetmap.org/node/1640184983'],
  ['Kala Ghoda cafés','Kala Ghoda · area pin; confirm café',18.9284581,72.8325994,'https://www.openstreetmap.org/node/2630028159'],
+ ['Old Manali café morning','Old Manali · area pin; confirm café',32.2551582,77.1765927,'https://www.openstreetmap.org/way/241258377'],
+ ['Fontainhas heritage walk','Fontainhas · area pin; confirm walk start',15.4966560,73.8310810,'https://www.openstreetmap.org/node/1687185066'],
+ ['Om Beach sunrise','Om Beach · beach pin',14.5190647,74.3254238,'https://www.openstreetmap.org/relation/5926076'],
+ ['Cubbon Park stroll','Cubbon Park · park pin',12.9742535,77.5921906,'https://www.openstreetmap.org/way/22895320'],
+ ['Gateway of India at dawn','Gateway of India',18.9219661,72.8345657,'https://www.openstreetmap.org/way/28845634'],
+ ['Kudle Beach walk','Kudle Beach · beach pin',14.5284471,74.3158565,'https://www.openstreetmap.org/relation/5934584'],
+ ['Half Moon Beach trek','Half Moon Beach · destination pin; confirm trailhead',14.5179728,74.3309440,'https://www.openstreetmap.org/relation/5932304'],
 ];
 const db=new pg.Client({connectionString:process.env.MIGRATION_DATABASE_URL});
 await db.connect();
