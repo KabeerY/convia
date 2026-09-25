@@ -55,6 +55,10 @@
 .wm-preview-dialog > p { max-width: 460px; margin-bottom: 25px; color: #74695f; line-height: 1.6; }
 .wm-preview-items { display: grid; gap: 10px; margin: 25px 0; padding: 20px 0; border-block: 1px solid #e3d4c5; font-size: 14px; }
 .wm-preview-items strong { margin-bottom: 4px; color: #a25840; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.wm-preview-budget { display: grid; gap: 6px; margin: 18px 0 24px; padding: 19px 21px; border: 1px solid #d8c8b4; border-radius: 15px; background: #f4ecdf; }
+.wm-preview-budget > strong { color: #302b25; font-family: "Instrument Serif", Georgia, serif; font-size: 30px; font-weight: 400; }
+.wm-preview-budget > small, .wm-preview-budget p small { color: #74695f; font-size: 12px; line-height: 1.5; }
+.wm-preview-budget p { margin: 7px 0 0; color: #426650; font-size: 15px; font-weight: 700; line-height: 1.6; }
 .wm-app-header nav button[aria-current="page"] { color: #aa553e; text-decoration: underline; text-underline-offset: 8px; }
 @media (max-width: 900px) {
   .wm-choice-grid { grid-template-columns: 1fr; }

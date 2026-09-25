@@ -229,6 +229,16 @@ export const v0Module: CoreModule = {
     app.get("/v1/catalog/cities", async (request) => ({
       cities: await domain.query("v0.catalog.cities", await domain.resolveContext(request)),
     }));
+    app.get("/v1/catalog/trips", async (request) => {
+      const input = parse(filters, request.query);
+      return { trips: await domain.query("v0.catalog.trips", await domain.resolveContext(request), undefined, input) };
+    });
+    app.get("/v1/catalog/trips/:trip_id", async (request) => {
+      const { trip_id } = parse(tripParams, request.params);
+      const preview = await domain.query("v0.catalog.trip_preview", await domain.resolveContext(request), trip_id);
+      if (!preview) throw new DomainError("TRIP_NOT_FOUND", 404);
+      return preview;
+    });
     app.get("/v1/fx/convert", async (request) => {
       const { from, to, amount } = parse(fxQuery, request.query);
       await domain.resolveContext(request);

@@ -84,6 +84,7 @@ const migrations = [
   },
   { name: "0021_map_locations", path: resolve(dataRoot, "migrations/0021_map_locations.sql") },
   { name: "0022_catalog", path: resolve(dataRoot, "migrations/0022_catalog.sql") },
+  { name: "0023_trip_budget_catalog", path: resolve(dataRoot, "migrations/0023_trip_budget_catalog.sql") },
 ];
 
 async function main() {

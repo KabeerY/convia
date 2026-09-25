@@ -71,6 +71,8 @@ const queryNames = new Set([
   "v0.discover.list",
   "v0.catalog.cities",
   "v0.catalog.guides",
+  "v0.catalog.trips",
+  "v0.catalog.trip_preview",
   "v0.genome.read",
   "v0.chat.list",
   "v0.forks.list",
@@ -266,6 +268,7 @@ export function createDomain(
         name !== "v0.discover.list" &&
         name !== "v0.catalog.cities" &&
         name !== "v0.catalog.guides" &&
+        name !== "v0.catalog.trips" &&
         !resourceId)
     )
       throw new DomainError("UNKNOWN_QUERY", 400);
