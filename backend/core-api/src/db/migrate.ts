@@ -83,6 +83,7 @@ const migrations = [
     path: resolve(dataRoot, "migrations/0020_rematch_photos_on_reference_enroll.sql"),
   },
   { name: "0021_map_locations", path: resolve(dataRoot, "migrations/0021_map_locations.sql") },
+  { name: "0022_catalog", path: resolve(dataRoot, "migrations/0022_catalog.sql") },
 ];
 
 async function main() {

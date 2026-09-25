@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { auth, sessionConfigured } from "./lib/session";
 import { core, describeError } from "./lib/api";
-import { cities, cityName } from "./data/cities";
+import { cities, cityName, cityDetails, setCityCatalog } from "./data/cities";
 import { DiscoverTrips, Passport } from "./Discovery";
 import DecisionRoom from "./DecisionRoom";
 import Memories from "./Memories";
@@ -164,7 +164,7 @@ function AuthScreen({ onSession }) {
   );
 }
 
-function CreateTrip({ onCreate, busy }) {
+function CreateTrip({ onCreate, busy, cityOptions }) {
   const [form, setForm] = useState({
     title: "",
     destination_city_id: cities[0].id,
@@ -177,10 +177,10 @@ function CreateTrip({ onCreate, busy }) {
   });
   const change = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   return (
-    <form className="wm-form wm-create-form" onSubmit={(event) => { event.preventDefault(); onCreate({ ...form, capacity: Number(form.capacity), timezone: "Asia/Kolkata", home_currency: "INR" }); }}>
+    <form className="wm-form wm-create-form" onSubmit={(event) => { event.preventDefault(); onCreate({ ...form, capacity: Number(form.capacity), timezone: cityDetails(form.destination_city_id)?.timezone || "Asia/Kolkata", home_currency: "INR" }); }}>
       <div className="wm-form-grid">
         <label className="wm-wide">Trip name<input value={form.title} onChange={(e) => change("title", e.target.value)} placeholder="A long weekend in the mountains" maxLength={120} required /></label>
-        <label>Destination<select value={form.destination_city_id} onChange={(e) => change("destination_city_id", e.target.value)}>{cities.map((city) => <option key={city.id} value={city.id}>{city.name}, {city.region}</option>)}</select></label>
+        <label>Destination<select value={form.destination_city_id} onChange={(e) => change("destination_city_id", e.target.value)}>{cityOptions.map((city) => <option key={city.id} value={city.id}>{city.name}, {city.country || city.region}</option>)}</select></label>
         <label>Group size<input type="number" min="1" max="200" value={form.capacity} onChange={(e) => change("capacity", e.target.value)} required /></label>
         <label>Start date<input type="date" min={plusDays(0)} value={form.start_date} onChange={(e) => change("start_date", e.target.value)} required /></label>
         <label>End date<input type="date" min={form.start_date} value={form.end_date} onChange={(e) => change("end_date", e.target.value)} required /></label>
@@ -193,7 +193,7 @@ function CreateTrip({ onCreate, busy }) {
   );
 }
 
-function Dashboard({ trips, loading, error, onCreate, onJoin, onRetry, busy, openTrip }) {
+function Dashboard({ trips, loading, error, onCreate, onJoin, onRetry, busy, openTrip, cityOptions }) {
   const [mode, setMode] = useState(() => new URLSearchParams(window.location.search).get("create") === "1" ? "create" : "trips");
   const [tripId, setTripId] = useState(new URLSearchParams(window.location.search).get("invite_trip") || "");
   const [code, setCode] = useState(new URLSearchParams(window.location.search).get("code") || "");
@@ -204,7 +204,7 @@ function Dashboard({ trips, loading, error, onCreate, onJoin, onRetry, busy, ope
         <div className="wm-dashboard-actions"><button className="wm-primary" onClick={() => setMode("create")}>+ Create a trip</button><button className="wm-secondary" onClick={() => setMode("join")}>I have an invite</button></div>
       </div>
       {error && <div className="wm-retry-notice"><Notice tone="error">{error}</Notice><button className="wm-secondary" onClick={onRetry}>Retry loading trips</button></div>}
-      {mode === "create" && <section className="wm-panel wm-flow-panel"><div className="wm-panel-title"><div><span className="wm-kicker">A TRIP OF YOUR OWN</span><h2>Start something good.</h2></div><button className="wm-icon-button" onClick={() => setMode("trips")} aria-label="Close create form">×</button></div><CreateTrip onCreate={onCreate} busy={busy} /></section>}
+      {mode === "create" && <section className="wm-panel wm-flow-panel"><div className="wm-panel-title"><div><span className="wm-kicker">A TRIP OF YOUR OWN</span><h2>Start something good.</h2></div><button className="wm-icon-button" onClick={() => setMode("trips")} aria-label="Close create form">×</button></div><CreateTrip onCreate={onCreate} busy={busy} cityOptions={cityOptions} /></section>}
       {mode === "join" && <section className="wm-panel wm-flow-panel"><div className="wm-panel-title"><div><span className="wm-kicker">YOU ARE INVITED</span><h2>Join your people.</h2></div><button className="wm-icon-button" onClick={() => setMode("trips")} aria-label="Close join form">×</button></div><form className="wm-form" onSubmit={(event) => { event.preventDefault(); onJoin(tripId.trim(), code.trim()); }}><div className="wm-form-grid"><label>Trip ID<input value={tripId} onChange={(e) => setTripId(e.target.value)} placeholder="trp_…" required /></label><label>Invite code<input value={code} onChange={(e) => setCode(e.target.value)} placeholder="From your organizer" required /></label></div><button className="wm-primary" disabled={busy}>{busy ? "Joining…" : "Join trip →"}</button></form></section>}
       <div className="wm-section-heading"><div><span className="wm-kicker">YOUR TRIP ROOMS</span><h2>Plans already in motion.</h2></div></div>
       {loading ? <div className="wm-empty">Finding your trips…</div> : error ? null : trips.length === 0 ? <div className="wm-empty"><span className="wm-empty-icon">⌁</span><h3>The page is yours to fill.</h3><p>Make your first trip and invite someone in.</p></div> : <div className="wm-trip-grid">{trips.map((trip) => <button className="wm-trip-card" key={trip.trip_id} onClick={() => openTrip(trip.trip_id)}><span className="wm-card-top"><span className="wm-kicker">{trip.app_role?.replace("_", " ") || "Member"}</span><span aria-hidden="true">↗</span></span><strong>{trip.title}</strong><span>{cityName(trip.destination_city_id)} · {readableDate(trip.start_date)}</span><span className="wm-card-bottom">Open trip room <span aria-hidden="true">→</span></span></button>)}</div>}
@@ -242,6 +242,25 @@ function AddProposal({ trip, version, onPublish, busy }) {
     if (completed) { setTitle(""); setStartsAt(""); setEndsAt(""); setOpen(false); }
   }
   return <div className="wm-add-proposal"><button className="wm-secondary" onClick={() => setOpen(!open)}>{open ? "Close proposal" : "+ Propose an activity"}</button>{open && <form className="wm-form wm-proposal-form" onSubmit={submit}><p>Your group will vote before this joins the shared plan.</p><label>Activity<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sunset walk by the river" required /></label><div className="wm-form-grid"><label>Starts<input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} required /></label><label>Ends<input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} min={startsAt} required /></label><label>Kind<select value={type} onChange={(e) => setType(e.target.value)}><option value="poi">Place or activity</option><option value="meal">Food</option><option value="guide">Guide</option><option value="free">Free time</option></select></label></div>{formError && <Notice tone="error">{formError}</Notice>}<button className="wm-primary" disabled={busy || !Number.isInteger(version)}>{busy ? "Publishing…" : "Send to the group →"}</button>{!Number.isInteger(version) && <small>Waiting for the current itinerary version before proposals can be published.</small>}</form>}</div>;
+}
+
+function BudgetConverter({ token, destinationCurrency, homeCurrency }) {
+  const [amount, setAmount] = useState("100");
+  const [quote, setQuote] = useState(null);
+  const [error, setError] = useState("");
+  const from = destinationCurrency;
+  const to = homeCurrency || "INR";
+  useEffect(() => { setQuote(null); }, [from, to]);
+  if (!from) return <section className="wm-panel wm-budget-converter"><div><span className="wm-kicker">BUDGET COMPANION</span><h3>Finding this destination’s currency…</h3><p>Reference currency data is not available yet. Your itinerary is unaffected.</p></div></section>;
+  async function convert(event) {
+    event.preventDefault();
+    setError("");
+    setQuote(null);
+    try {
+      setQuote(await core(`/fx/convert?${new URLSearchParams({ from, to, amount })}`, { token }));
+    } catch (caught) { setError(describeError(caught)); }
+  }
+  return <section className="wm-panel wm-budget-converter"><div><span className="wm-kicker">BUDGET COMPANION</span><h3>What does it cost back home?</h3><p>Enter an amount in the destination currency. This is a reference conversion, not a trip cost estimate.</p></div><form onSubmit={convert}><label>{from}<input type="number" min="0" max="999999999" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} required /></label><span aria-hidden="true">→</span><div className="wm-budget-result"><small>{to}</small><strong>{quote ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(Number(quote.converted)) : "—"}</strong></div><button className="wm-secondary">Convert</button></form>{quote && <small className="wm-budget-note">1 {from} = {quote.rate} {to} · reference rate {quote.rate_date}. Bank/card rates may differ.</small>}{error && <Notice tone="error">{error}</Notice>}</section>;
 }
 
 function TripRoom({ tripId, token, onBack }) {
@@ -370,6 +389,7 @@ function TripRoom({ tripId, token, onBack }) {
       <div className="wm-room-hero"><div><span className="wm-kicker">{settings.visibility === "public" ? "OPEN GROUP" : "PRIVATE TRIP"} · {cityName(trip.destination_city_id)}</span><h1>{trip.title}</h1><p>{readableDate(trip.start_date)} — {readableDate(trip.end_date)} <span>·</span> {members.length || "Your"} travellers</p></div><div className="wm-room-meta"><span>Plan version <strong>v{version ?? "—"}</strong></span><small className="wm-live-status"><span aria-hidden="true" />{updatedAt ? "Live sync on" : "Connecting…"}</small></div></div>
       <nav className="wm-tabs" aria-label="Trip room sections">{tabs.map((name) => <button key={name} className={tab === name ? "active" : ""} aria-current={tab === name ? "page" : undefined} onClick={() => setTab(name)}>{name === "people" ? "People & invites" : name === "decisions" ? `Decisions${decisions.length ? ` · ${decisions.length}` : ""}` : name[0].toUpperCase() + name.slice(1)}</button>)}</nav>
       <Notice tone="error">{actionError}</Notice>
+      {tab === "plan" && <BudgetConverter key={tripId} token={token} destinationCurrency={cityDetails(trip.destination_city_id)?.currency} homeCurrency={trip.home_currency} />}
       {tab === "plan" && <section className="wm-panel cc-calendar-panel"><div className="wm-panel-title"><div><span className="wm-kicker">THE SHARED PLAN</span><h2>One place for everyone.</h2></div><div className="wm-plan-switch"><button className={planView === "calendar" ? "active" : ""} onClick={() => setPlanView("calendar")}>Calendar</button><button className={planView === "list" ? "active" : ""} onClick={() => setPlanView("list")}>Day list</button><button className={planView === "map" ? "active" : ""} onClick={() => setPlanView("map")}>Map</button></div></div>{unavailable.plan ? <Notice tone="error">{unavailable.plan}</Notice> : planView !== "list" ? <PlanCalendar selectedDay={mapDay} onDayChange={setMapDay} view={planView} items={items} forks={forks} calendar={calendar} unavailable={unavailable.calendar} trip={trip} timezone={settings.timezone} version={version} busy={busy} members={members} canVote={canVote && !!calendar && !unavailable.calendar} decisions={decisions} actionError={actionError} onVote={voteOnDecision} onCommand={calendarCommand} /> : <PlanDays selectedDay={mapDay} onDayChange={setMapDay} items={items} trip={trip} timezone={settings.timezone} />}</section>}
       {tab === "decisions" && <><DecisionRoom decisions={decisions} unavailable={unavailable.decisions} canVote={canVote} busy={busy} onVote={voteOnDecision} /><section className="wm-panel"><h2>Calendar changes & discussions</h2><Notice tone="error">{unavailable.calendar}</Notice><CalendarDiscussions proposals={calendar?.proposals || []} busy={busy} onCommand={calendarCommand} /></section></>}
       {tab === "chat" && <ChatRoom messages={messages} members={members} tripTitle={trip.title} unavailable={unavailable.chat} busy={busy} onSend={sendChat} onReviewProposal={() => setTab("decisions")} />}
@@ -389,6 +409,7 @@ export default function Workspace() {
   const [tripsLoading, setTripsLoading] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [cityOptions, setCityOptions] = useState(cities);
 
   useEffect(() => {
     if (!auth) return;
@@ -411,6 +432,16 @@ export default function Workspace() {
     finally { setTripsLoading(false); }
   }, [session?.access_token]);
   useEffect(() => { refreshTrips(); }, [refreshTrips]);
+  useEffect(() => {
+    if (!session?.access_token) return;
+    let active = true;
+    core("/catalog/cities", { token: session.access_token }).then((value) => {
+      if (!active || !Array.isArray(value?.cities) || !value.cities.length) return;
+      setCityCatalog(value.cities);
+      setCityOptions(value.cities);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [session?.access_token]);
 
   function navigate(id, nextView = "trips") {
     const url = id ? `/app?trip=${encodeURIComponent(id)}` : nextView === "trips" ? "/app" : `/app?view=${encodeURIComponent(nextView)}`;
@@ -432,7 +463,7 @@ export default function Workspace() {
   if (!session) return <AuthScreen onSession={setSession} />;
   return <div className="workspace">
     <AppHeader session={session} tripId={tripId} view={view} navigate={navigate} />
-    {tripId ? <TripRoom key={tripId} tripId={tripId} token={session.access_token} onBack={() => navigate(null)} /> : view === "passport" ? <Passport token={session.access_token} onDiscover={() => navigate(null, "discover")} /> : view === "discover" ? <DiscoverTrips token={session.access_token} onPassport={() => navigate(null, "passport")} onOpenTrip={navigate} /> : <Dashboard trips={trips} loading={tripsLoading} error={error} onRetry={refreshTrips} busy={busy} openTrip={navigate} onCreate={(body) => act("/trips", body, (result) => navigate(result.trip_id))} onJoin={(id, code) => act("/invites/redeem", { trip_id: id, code }, () => navigate(id))} />}
+    {tripId ? <TripRoom key={tripId} tripId={tripId} token={session.access_token} onBack={() => navigate(null)} /> : view === "passport" ? <Passport token={session.access_token} onDiscover={() => navigate(null, "discover")} /> : view === "discover" ? <DiscoverTrips token={session.access_token} cityOptions={cityOptions} onPassport={() => navigate(null, "passport")} onOpenTrip={navigate} /> : <Dashboard trips={trips} loading={tripsLoading} error={error} onRetry={refreshTrips} busy={busy} cityOptions={cityOptions} openTrip={navigate} onCreate={(body) => act("/trips", body, (result) => navigate(result.trip_id))} onJoin={(id, code) => act("/invites/redeem", { trip_id: id, code }, () => navigate(id))} />}
     <footer className="wm-app-footer wm-container">Made for the trip you will talk about long after it ends. <span>Convia · Team pacmen</span></footer>
   </div>;
 }

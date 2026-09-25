@@ -9,5 +9,13 @@ export const cities = [
   { id: "cty_17b8ef2f", name: "Bengaluru", region: "Karnataka", center: { lat: 12.971599, lng: 77.594566 } },
 ];
 
-export const cityName = (id) => cities.find((city) => city.id === id)?.name || "Your trip";
-export const cityCenter = (id) => cities.find((city) => city.id === id)?.center || null;
+let catalog = cities;
+export function setCityCatalog(rows) {
+  if (Array.isArray(rows) && rows.length) catalog = rows.map((city) => ({
+    ...city,
+    center: { lat: Number(city.lat ?? city.center?.lat), lng: Number(city.lng ?? city.center?.lng) },
+  }));
+}
+export const cityName = (id) => catalog.find((city) => city.id === id)?.name || "Your trip";
+export const cityCenter = (id) => catalog.find((city) => city.id === id)?.center || null;
+export const cityDetails = (id) => catalog.find((city) => city.id === id) || null;

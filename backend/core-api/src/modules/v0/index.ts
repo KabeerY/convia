@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { Decimal } from "decimal.js";
 import { DomainError } from "../../domain.js";
 import { verifyServiceCredential } from "../../auth/service-credentials.js";
 import { readConfig } from "../../config.js";
@@ -85,6 +86,12 @@ const filters = z.object({
   destination_city_id: z.string().max(128).optional(),
   start_date: z.iso.date().optional(),
 });
+const fxQuery = z.object({
+  from: z.string().regex(/^[A-Z]{3}$/),
+  to: z.string().regex(/^[A-Z]{3}$/),
+  amount: z.string().regex(/^\d{1,9}(?:\.\d{1,2})?$/),
+});
+const fxCache = new Map<string, { expires: number; date: string; rate: string }>();
 type PlanItem = {
   item_id: string;
   title: string;
@@ -219,6 +226,35 @@ export const v0Module: CoreModule = {
     app.get("/v1/me/passport", async (request) =>
       domain.query("v0.passport.read", await domain.resolveContext(request)),
     );
+    app.get("/v1/catalog/cities", async (request) => ({
+      cities: await domain.query("v0.catalog.cities", await domain.resolveContext(request)),
+    }));
+    app.get("/v1/fx/convert", async (request) => {
+      const { from, to, amount } = parse(fxQuery, request.query);
+      await domain.resolveContext(request);
+      const key = `${from}/${to}`;
+      let quote = fxCache.get(key);
+      if (from === to) quote = { date: new Date().toISOString().slice(0, 10), rate: "1", expires: Date.now() + 3600000 };
+      if (!quote || quote.expires < Date.now()) {
+        let response: Response;
+        try {
+          response = await fetch(`https://api.frankfurter.dev/v2/rate/${from.toLowerCase()}/${to.toLowerCase()}`, {
+            signal: AbortSignal.timeout(7000),
+          });
+        } catch {
+          throw new DomainError("FX_UNAVAILABLE", 503, "Reference exchange rates are temporarily unavailable.");
+        }
+        if (!response.ok) throw new DomainError("FX_UNAVAILABLE", 503, "This currency pair is not available.");
+        const value = z.object({ date: z.iso.date(), rate: z.number().positive() }).parse(await response.json());
+        quote = { date: value.date, rate: String(value.rate), expires: Date.now() + 3600000 };
+        fxCache.set(key, quote);
+      }
+      return {
+        from, to, amount, converted: new Decimal(amount).mul(quote.rate).toDecimalPlaces(2).toFixed(2),
+        rate: quote.rate, rate_date: quote.date, source: "Frankfurter / reference rates",
+        note: "Indicative only; card, bank and cash rates may differ.",
+      };
+    });
     app.put("/v1/me/passport", async (request) => {
       const input = parse(passport, request.body);
       return domain.execute(

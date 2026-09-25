@@ -108,10 +108,26 @@ function scoreLabel(candidate) {
   return raw >= 0.7 ? "Shared travel style" : "Worth a conversation";
 }
 
-export function DiscoverTrips({ token, onOpenTrip, onPassport }) {
+function guideAnchor(guide, passport) {
+  const linked = {
+    Adventure: ["trekking"], Culture: ["heritage", "religious"],
+    Food: ["food"], Nature: ["wildlife"], Photography: ["photography"],
+    History: ["heritage"], Nightlife: ["food", "shopping"],
+  };
+  const interests = Array.isArray(passport?.interests) ? passport.interests : [];
+  const match = interests.find((interest) => (linked[interest] || []).includes(guide.specialisation)
+    || (linked[interest] || []).includes(guide.secondary_specialisation));
+  return match ? `Shares ${match.toLowerCase()}` : "";
+}
+
+export function DiscoverTrips({ token, cityOptions = cities, onOpenTrip, onPassport }) {
+  const [kind, setKind] = useState("groups");
   const [cityId, setCityId] = useState("");
   const [date, setDate] = useState("");
   const [results, setResults] = useState([]);
+  const [guides, setGuides] = useState([]);
+  const [visibleGuides, setVisibleGuides] = useState(12);
+  const [passportFields, setPassportFields] = useState(blankPassport);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
@@ -121,18 +137,29 @@ export function DiscoverTrips({ token, onOpenTrip, onPassport }) {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState("");
 
-  async function search(event) {
+  async function search(event, nextKind = kind) {
     event?.preventDefault();
     setLoading(true);
     setError("");
     setSearched(true);
     try {
       const params = new URLSearchParams();
-      if (cityId) params.set("destination_city_id", cityId);
-      if (date) params.set("start_date", date);
-      const value = await core(`/discover/trips${params.size ? `?${params}` : ""}`, { token });
-      setResults(Array.isArray(value) ? value : Array.isArray(value?.trips) ? value.trips : []);
-    } catch (caught) { setError(describeError(caught)); setResults([]); }
+      if (nextKind === "guides") {
+        const query = cityId ? `?city_id=${encodeURIComponent(cityId)}` : "";
+        const [value, saved] = await Promise.all([
+          core(`/guides${query}`, { token }),
+          core("/me/passport", { token }),
+        ]);
+        setGuides(Array.isArray(value?.guides) ? value.guides : []);
+        setVisibleGuides(12);
+        setPassportFields(saved?.confirmed_fields || blankPassport);
+      } else {
+        if (cityId) params.set("destination_city_id", cityId);
+        if (date) params.set("start_date", date);
+        const value = await core(`/discover/trips${params.size ? `?${params}` : ""}`, { token });
+        setResults(Array.isArray(value) ? value : Array.isArray(value?.trips) ? value.trips : []);
+      }
+    } catch (caught) { setError(describeError(caught)); setResults([]); setGuides([]); }
     finally { setLoading(false); }
   }
 
@@ -162,9 +189,10 @@ export function DiscoverTrips({ token, onOpenTrip, onPassport }) {
 
   return <main className="wm-container wm-discovery-page">
     <div className="wm-page-intro wm-discover-intro"><div><span className="wm-kicker">FIND YOUR PEOPLE</span><h1>Your next trip has <em>room for you.</em></h1><p>Explore open groups. When your Passport has confirmed preferences, Convia can show why a group might fit.</p></div><button className="wm-secondary" onClick={onPassport}>Edit my Passport →</button></div>
-    <form className="wm-panel wm-discover-filters" onSubmit={search}><label>Where to?<select value={cityId} onChange={(event) => setCityId(event.target.value)}><option value="">Anywhere</option>{cities.map((city) => <option key={city.id} value={city.id}>{city.name}, {city.region}</option>)}</select></label><label>Starting from<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><button className="wm-primary" disabled={loading}>{loading ? "Looking…" : "Find open trips →"}</button></form>
+    <div className="wm-discover-kind" role="group" aria-label="What to discover"><button type="button" className={kind === "groups" ? "active" : ""} onClick={() => { setKind("groups"); search(null, "groups"); }}>Open groups</button><button type="button" className={kind === "guides" ? "active" : ""} onClick={() => { setKind("guides"); search(null, "guides"); }}>Find guides</button></div>
+    <form className="wm-panel wm-discover-filters" onSubmit={search}><label>Where to?<select value={cityId} onChange={(event) => setCityId(event.target.value)}><option value="">Anywhere</option>{cityOptions.map((city) => <option key={city.id} value={city.id}>{city.name}, {city.country || city.region}</option>)}</select></label>{kind === "groups" && <label>Starting from<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>}<button className="wm-primary" disabled={loading}>{loading ? "Looking…" : kind === "groups" ? "Find open trips →" : "Find sample guides →"}</button></form>
     <Feedback error={error} />
-    {loading ? <div className="wm-empty">Finding groups with room for you…</div> : searched && !error && results.length === 0 ? <div className="wm-empty"><h3>No open trips found yet.</h3><p>Try another destination or date, or start a trip of your own.</p></div> : <div className="wm-discover-grid">{results.map((candidate, index) => { const trip = candidateTrip(candidate); const id = trip.trip_id; const reasons = candidate.match_reasons || candidate.reasons || []; const score = scoreLabel(candidate); return <article className="wm-panel wm-discover-card" key={id || index}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(trip.destination_city_id)}</span>{score && <strong className="wm-fit-label">{score}</strong>}</div><h2>{trip.title}</h2><p>{trip.description || "A group trip with a place for new stories."}</p><div className="wm-discover-detail">{trip.start_date ? new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(new Date(`${String(trip.start_date).slice(0, 10)}T12:00:00`)) : "Dates open"}{trip.capacity ? ` · Up to ${trip.capacity} travellers` : ""}</div>{Array.isArray(reasons) && reasons.length > 0 && <div className="wm-match-reasons">{reasons.slice(0, 3).map((reason, reasonIndex) => <span key={reasonIndex}>{typeof reason === "string" ? reason : reason.label || reason.reason}</span>)}</div>}<div className="wm-card-actions">{id && <button className="wm-secondary" onClick={() => viewPublicTrip(id)}>View trip</button>}{id && <button className="wm-primary" disabled={requesting === id || Boolean(requested[id])} onClick={() => askToJoin(id)}>{requesting === id ? "Sending…" : requested[id] === "accepted" ? "Joined" : requested[id] ? "Request sent" : "Ask to join →"}</button>}</div></article>; })}</div>}
+    {kind === "guides" ? <><p className="wm-sample-disclosure">These are sample guide profiles from the supplied synthetic WanderMatch dataset—not verified bookable guides.</p>{loading ? <div className="wm-empty">Finding guide profiles…</div> : searched && !error && guides.length === 0 ? <div className="wm-empty"><h3>No sample guides found here.</h3><p>Try a different destination.</p></div> : <><div className="wm-discover-grid">{[...guides].sort((a, b) => Number(guideAnchor(b, passportFields) !== "") - Number(guideAnchor(a, passportFields) !== "") || Number(b.rating || 0) - Number(a.rating || 0)).slice(0, visibleGuides).map((guide) => <article className="wm-panel wm-discover-card wm-guide-card" key={guide.guide_id}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(guide.city_id)} · {guide.specialisation}</span>{guideAnchor(guide, passportFields) && <strong className="wm-fit-label">{guideAnchor(guide, passportFields)}</strong>}</div><h2>{guide.display_name}</h2><p>{guide.bio}</p><div className="wm-discover-detail">{guide.rating ? `${guide.rating} / 5 · ` : ""}{guide.years_experience} years experience · {guide.languages}</div><div className="wm-match-reasons"><span>{guide.currency} {Number(guide.half_day_rate).toLocaleString("en-IN")} half day</span><span>{guide.currency} {Number(guide.day_rate).toLocaleString("en-IN")} full day</span></div><small>Sample profile · no booking in Convia</small></article>)}</div>{visibleGuides < guides.length && <button className="wm-secondary wm-more-guides" onClick={() => setVisibleGuides((count) => count + 12)}>Show more sample guides →</button>}</>}</> : loading ? <div className="wm-empty">Finding groups with room for you…</div> : searched && !error && results.length === 0 ? <div className="wm-empty"><h3>No open trips found yet.</h3><p>Try another destination or date, or start a trip of your own.</p></div> : <div className="wm-discover-grid">{results.map((candidate, index) => { const trip = candidateTrip(candidate); const id = trip.trip_id; const reasons = candidate.match_reasons || candidate.reasons || []; const score = scoreLabel(candidate); return <article className="wm-panel wm-discover-card" key={id || index}><div className="wm-discover-card-top"><span className="wm-kicker">{cityName(trip.destination_city_id)}</span>{score && <strong className="wm-fit-label">{score}</strong>}</div><h2>{trip.title}</h2><p>{trip.description || "A group trip with a place for new stories."}</p><div className="wm-discover-detail">{trip.start_date ? new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(new Date(`${String(trip.start_date).slice(0, 10)}T12:00:00`)) : "Dates open"}{trip.capacity ? ` · Up to ${trip.capacity} travellers` : ""}</div>{Array.isArray(reasons) && reasons.length > 0 && <div className="wm-match-reasons">{reasons.slice(0, 3).map((reason, reasonIndex) => <span key={reasonIndex}>{typeof reason === "string" ? reason : reason.label || reason.reason}</span>)}</div>}<div className="wm-card-actions">{id && <button className="wm-secondary" onClick={() => viewPublicTrip(id)}>View trip</button>}{id && <button className="wm-primary" disabled={requesting === id || Boolean(requested[id])} onClick={() => askToJoin(id)}>{requesting === id ? "Sending…" : requested[id] === "accepted" ? "Joined" : requested[id] ? "Request sent" : "Ask to join →"}</button>}</div></article>; })}</div>}
     {preview && <div className="wm-preview-backdrop" role="presentation" onClick={() => setPreview(null)}><section className="wm-preview-dialog wm-panel" role="dialog" aria-modal="true" aria-label="Public trip preview" onClick={(event) => event.stopPropagation()}><button className="wm-icon-button" aria-label="Close preview" onClick={() => setPreview(null)}>×</button>{previewLoading ? <div className="wm-empty wm-empty-small">Opening this trip…</div> : previewError ? <Feedback error={previewError} /> : <><span className="wm-kicker">OPEN GROUP · {cityName((preview.trip || preview).destination_city_id)}</span><h2>{(preview.trip || preview).title}</h2><p>{(preview.trip || preview).description || "Meet the group, explore the plan, and see whether this feels like your kind of journey."}</p>{preview.genome && <GroupGenome genome={preview.genome} />}{Array.isArray(preview.itinerary_preview) && preview.itinerary_preview.length > 0 && <div className="wm-preview-items"><strong>A glimpse of the plan</strong>{preview.itinerary_preview.slice(0, 5).map((item, index) => <span key={item.item_id || index}>{item.title}</span>)}</div>}<div className="wm-card-actions"><button className="wm-primary" disabled={requesting === (preview.trip || preview).trip_id || Boolean(requested[(preview.trip || preview).trip_id])} onClick={() => askToJoin((preview.trip || preview).trip_id)}>{requested[(preview.trip || preview).trip_id] ? "Request sent" : "Ask to join →"}</button><button className="wm-secondary" onClick={() => setPreview(null)}>Keep exploring</button></div></>}</section></div>}
   </main>;
 }

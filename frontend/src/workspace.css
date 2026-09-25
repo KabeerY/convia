@@ -70,6 +70,17 @@
 .wm-section-heading h2,
 .wm-panel h2 { margin: 9px 0 0; font-family: "Manrope", "DM Sans", sans-serif; font-size: clamp(29px, 3vw, 39px); font-weight: 750; letter-spacing: -.05em; line-height: 1.16; }
 .wm-panel { padding: clamp(22px, 3vw, 38px); border: 1px solid #e0d4c6; border-radius: 20px; background: #fcf8f1; box-shadow: 0 16px 55px #533e2410; }
+.wm-budget-converter { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 28px; margin: 0 0 20px; padding: 20px 25px; }
+.wm-budget-converter > div:first-child { flex: 1 1 290px; }
+.wm-budget-converter h3 { margin: 6px 0; font-family: "Instrument Serif", Georgia, serif; font-size: 27px; font-weight: 400; }
+.wm-budget-converter p { margin: 0; color: #786b60; font-size: 13px; line-height: 1.4; }
+.wm-budget-converter form { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; }
+.wm-budget-converter label { display: grid; gap: 5px; font-size: 12px; font-weight: 750; }
+.wm-budget-converter input { width: 112px; min-height: 44px; padding: 8px 10px; border: 1px solid #cdbfb0; border-radius: 10px; background: #fffdf9; font: inherit; }
+.wm-budget-result { display: grid; min-width: 115px; }
+.wm-budget-result small { color: #a95239; font-size: 11px; font-weight: 750; }
+.wm-budget-result strong { font-size: 22px; line-height: 1.2; }
+.wm-budget-note { flex-basis: 100%; color: #786b60; }
 .wm-panel-title { display: flex; justify-content: space-between; gap: 20px; align-items: start; margin-bottom: 30px; }
 .wm-flow-panel { max-width: 880px; }
 .wm-icon-button { display: grid; place-items: center; width: 36px; height: 36px; background: #eee4d8; border-radius: 50%; font-size: 23px; }

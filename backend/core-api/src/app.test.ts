@@ -32,3 +32,23 @@ test("Core skeleton reports honest process and API status", async () => {
     await app.close();
   }
 });
+
+test("currency conversion uses the dated reference rate and decimal arithmetic", async () => {
+  const absent = async () => { throw new Error("not used"); };
+  const domain: DomainPort = {
+    resolveContext: async () => ({ actor: { userId: "traveller", authSubject: "test" }, requestId: "fx-test" }),
+    authorize: absent, transaction: absent, execute: absent, query: absent,
+  } as DomainPort;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ date: "2026-09-24", rate: 26.086 }), { status: 200 });
+  const app = await buildApp(readConfig({}), domain);
+  try {
+    const result = await app.inject("/v1/fx/convert?from=AED&to=INR&amount=125.50");
+    assert.equal(result.statusCode, 200);
+    assert.equal(result.json().converted, "3273.79");
+    assert.equal(result.json().rate_date, "2026-09-24");
+  } finally {
+    globalThis.fetch = originalFetch;
+    await app.close();
+  }
+});
