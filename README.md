@@ -55,7 +55,7 @@ Migrations extend the supplied schema instead of renaming its tables. The databa
 
 ## Run locally
 
-Requirements: Node.js **22.12+**, pnpm **10.17+**, Python **3.12+** and `uv` for the optional Python services, plus a Supabase project with PostgreSQL and Auth for the signed-in application. No keys are needed to view the landing.
+Requirements: Node.js **22.12+**, the repo-pinned pnpm **10.17.1**, Python **3.12+** and `uv` for the optional Python services, plus a Supabase project with PostgreSQL and Auth for the signed-in application. No keys are needed to view the landing. Newer pnpm majors may apply different build-script policies.
 
 ```sh
 pnpm install
