@@ -84,7 +84,7 @@ const trips = [
     tags: ["Slow mornings", "Architecture"],
     days: "3 days",
     people: "4–6 people",
-    image: "/assets/kailasa-hero.png",
+    image: null,
     position: "50% 55%",
     caption: "Walk through stories carved in stone.",
     itinerary: [
@@ -101,7 +101,7 @@ const trips = [
     tags: ["Fresh air", "Trail company"],
     days: "5 days",
     people: "4–8 people",
-    image: "/assets/manali-sunrise.png",
+    image: null,
     position: "50% 50%",
     caption: "For the people who take the scenic route.",
     itinerary: [
@@ -366,13 +366,13 @@ export default function App() {
           <div className="trip-grid">
             {filtered.map((t, i) => (
               <article className="trip-card" key={t.id}>
-                <div className="trip-photo">
-                  <img
+                <div className={`trip-photo trip-photo-${t.id}`}>
+                  {t.image && <img
                     src={t.image}
                     style={{ objectPosition: t.position }}
                     alt={t.place}
                     loading="lazy"
-                  />
+                  />}
                   <span className="trip-type">{t.type}</span>
                   <button
                     className={
@@ -670,11 +670,11 @@ export default function App() {
             </button>
             {modal === "trip" && selected && (
               <>
-                <img
+                {selected.image ? <img
                   className="modal-cover"
                   src={selected.image}
                   alt={selected.place}
-                />
+                /> : <div className={`modal-cover trip-photo-${selected.id}`} role="img" aria-label={`Illustrative colors for ${selected.place}`} />}
                 <div className="modal-content">
                   <div className="eyebrow">
                     TRIP INSPIRATION · NOT A LIVE GROUP

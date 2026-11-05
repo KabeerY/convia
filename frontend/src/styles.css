@@ -245,7 +245,9 @@ em {
 .temple-image {
   position: absolute;
   inset: -6% -3%;
-  background: url("/assets/kailasa-hero.png") center 52% / cover;
+  background:
+    radial-gradient(ellipse at 49% 58%, #d8a36c 0 12%, transparent 43%),
+    linear-gradient(145deg, #302c27 0%, #5e4d39 42%, #b78559 69%, #d4ac76 100%);
   transform: scale(calc(1.09 - var(--reveal) * 0.08));
   will-change: transform;
 }
@@ -261,8 +263,8 @@ em {
   width: 24%;
   z-index: 2;
   background:
-    linear-gradient(90deg, #191d18a6, #372f22d9),
-    url("/assets/kailasa-hero.png");
+    repeating-linear-gradient(90deg, transparent 0 24px, #d6b27a18 25px 26px),
+    linear-gradient(90deg, #1d211c, #453723);
   background-size: auto 135%;
   box-shadow: 0 0 35px #101b1760;
   will-change: transform;
@@ -551,6 +553,12 @@ em {
   overflow: hidden;
   position: relative;
   background: #bdc5b5;
+}
+.trip-photo-ellora {
+  background: radial-gradient(circle at 66% 24%, #f4c68d 0 8%, transparent 32%), linear-gradient(150deg, #363b32, #8a654a 55%, #d59a67);
+}
+.trip-photo-mountains {
+  background: radial-gradient(circle at 72% 16%, #fff1c8 0 8%, transparent 25%), linear-gradient(155deg, #a7b5ae 0 31%, #596c68 32% 53%, #30483f 54% 100%);
 }
 .trip-photo:after {
   content: "";
